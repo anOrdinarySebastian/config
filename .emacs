@@ -55,6 +55,10 @@
 
 (add-hook 'markdown-mode-hook 'mp-add-md-keys)
 
+;; Tex stuff
+(add-hook 'tex-mode-hooks (lambda ()
+                            (setq visual-line-mode t)))
+
 ;; Indentation
 (setq standard-indent 2)
 (setq-default tab-width 2)
