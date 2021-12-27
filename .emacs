@@ -10,6 +10,10 @@
 
 ;;(load "powershell.el")
 
+(setq explicit-shell-file-name "C:\\Program Files\\Git\\bin\\bash.exe")
+(setq shell-file-name explicit-shell-file-name)
+(add-to-list 'exec-path "C:\\Program Files\\Git\\bin\\bash.exe")
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -18,46 +22,14 @@
  '(ansi-color-names-vector
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "#d0d0d0"])
  '(custom-enabled-themes (quote (manoj-dark)))
- '(package-selected-packages (quote (irony jupyter markdown-mode))))
+ '(package-selected-packages (quote (irony jupyter markdown-mode)))
+ '(package-selected-packages (quote (auctex jedi markdown-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
-
-;; C stuff
-(defun mp-add-c-keys ()
-  (local-set-key "\C-cc" 'compile)
-  (local-set-key "\C-cr" 'gdb))
-
-(add-hook 'c-mode-hook 'mp-add-c-keys)
-
-;;(add-hook 'c-mode-hook
-;;          (lambda ()
-;;            (local-set-key "\C-cc" 'compile)))
-;;(add-hook 'c-mode-hook
-;;          (lambda ()
-;;            (local-set-key "\C-cr" 'gdb)))
-
-;; Verilog stuff
-(setq verilog-indent-level 2)
-
-;; Markdown stuff
-
-(defun md-insert-dash-line (char_to_insert)
-  (interactive)
-  (insert (make-string fill-column 'char_to_insert)))
-
-(defun mp-add-md-keys ()
-  (local-set-key "\C-cl" (md-insert-dash-line ?-))
-  (local-set-key "\C-c\C-l" (kbd "\C-u70=")))
-
-(add-hook 'markdown-mode-hook 'mp-add-md-keys)
-
-;; Tex stuff
-(add-hook 'tex-mode-hooks (lambda ()
-                            (setq visual-line-mode t)))
 
 ;; Indentation
 (setq standard-indent 2)
@@ -76,6 +48,7 @@
 
 (global-set-key (kbd "C-x p") 'prev-window)
 (global-set-key (kbd "C-c o") 'next-double-window)
+(global-set-key (kbd "C-c d") 'kill-whole-line)
 
 ;; Line highlighting and line number show
 ;; (global-hl-line-mode t)
@@ -100,6 +73,73 @@
 (?\' . ?\')
 ))
 (electric-pair-mode t)
+
+;; ================= MODE SPECIFICS ==========================
+
+;; C mode
+(defun mp-add-c-keys ()
+  (local-set-key "\C-cc" 'compile)
+  (local-set-key "\C-cr" 'gdb))
+
+(add-hook 'c-mode-hook 'mp-add-c-keys)
+
+;; Verilog mode
+(setq verilog-indent-level 2)
+
+;; Tex mode
+
+(defun tex-start-in-visu ()
+  "Unnecessary function to start latex in visual line mode"
+  ;;(interactive)
+  (setq visual-line-mode t)
+  ;;(visual-line-mode)
+  (message "This should appear if hook is loaded"))
+
+(add-hook 'TeX-mode-hook
+          (lambda () (visual-line-mode 1)))
+
+;; Markdown mode
+
+(defun md-insert-dash-line (char_to_insert)
+  (interactive)
+  (insert (make-string fill-column 'char_to_insert)))
+
+(defun mp-add-md-keys ()
+  (local-set-key "\C-cl" (md-insert-dash-line ?-))
+  (local-set-key "\C-c\C-l" (kbd "\C-u70=")))
+
+;;(add-hook 'markdown-mode-hook 'mp-add-md-keys)
+
+(remove-hook 'markdown-mode-hook 'delete-trailing-whitespace t)
+(add-hook 'markdown-mode-hook
+          (function
+           (lambda
+             ()
+             (interactive)
+             (define-key  markdown-mode-map (kbd "<S-return>")
+               (lambda ()(interactive)
+                 (insert "  ")
+                 (newline))
+               )
+             )
+           )
+          'mp-add-md-keys
+          )
+
+;; Python mode
+;; Jedi for code suggestions
+(add-hook 'python-mode-hook 'jedi:setup)
+(add-hook 'python-mode-hook (function (lambda()
+                                        (setq indent-tabs-mode nil
+                                              tab-width 2))))
+(setq python-shell-interpreter "ipython"
+      python-shell-interpreter-args "-i --simple-prompt")
+
+;;(setq jedi:complete-on-dot t)  ; optional
+
+;; Verilog mode
+(setq verilog-indent-level 2)
+
 
 (defun markdown-html (buffer)
   (princ (with-current-buffer buffer
