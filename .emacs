@@ -22,6 +22,7 @@
  '(ansi-color-names-vector
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "#d0d0d0"])
  '(custom-enabled-themes (quote (manoj-dark)))
+ '(inhibit-startup-screen t)
  '(package-selected-packages (quote (irony jupyter markdown-mode)))
  '(package-selected-packages (quote (auctex jedi markdown-mode))))
 (custom-set-faces
@@ -30,6 +31,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+ '(default ((t (:inherit nil :stipple nil :background "black" :foreground "gray" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "outline" :family "Consolas"))))
 
 ;; Indentation
 (setq standard-indent 2)
@@ -49,6 +51,8 @@
 (global-set-key (kbd "C-x p") 'prev-window)
 (global-set-key (kbd "C-c o") 'next-double-window)
 (global-set-key (kbd "C-c d") 'kill-whole-line)
+(global-set-key (kbd "C-x C-n") (kbd "C-x C-<right>"))
+(global-set-key (kbd "C-x C-p") (kbd "C-x C-<left>"))
 
 ;; Line highlighting and line number show
 ;; (global-hl-line-mode t)
@@ -88,15 +92,16 @@
 
 ;; Tex mode
 
-(defun tex-start-in-visu ()
-  "Unnecessary function to start latex in visual line mode"
-  ;;(interactive)
-  (setq visual-line-mode t)
-  ;;(visual-line-mode)
-  (message "This should appear if hook is loaded"))
+(setq reftex-plug-into-AUCTeX t)
 
-(add-hook 'TeX-mode-hook
-          (lambda () (visual-line-mode 1)))
+(defun tex-init-addons ()
+  "Unnecessary function to start latex in visual line mode"
+  ()
+  (visual-line-mode t)
+  (turn-on-reftex)
+  )
+
+(add-hook 'TeX-mode-hook 'tex-init-addons)
 
 ;; Markdown mode
 
