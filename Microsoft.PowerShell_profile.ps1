@@ -36,3 +36,6 @@ if (Test-Path .git) {
 Write-host -NoNewLine "$('>' * ($nestedPromptLevel + 1))"
 return " "
 }
+
+New-PSDrive -Name plan -PSProvider FileSystem -Root 'C:\Users\sebbe\git\datx05\61e68963dab8fe6667ee6fd9\' -Description "Mapping of the datx05 planning report to a nicer name"
+New-PSDrive -Name report -PSProvider FileSystem -Root 'C:\Users\sebbe\git\datx05\616540e313997595df739a1e\' -Description "Mapping of the datx05 final report to a nicer name"
