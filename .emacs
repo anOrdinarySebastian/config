@@ -8,8 +8,6 @@
 (use-package god-mode
   :ensure t
   :bind (("M-i" . god-mode-all)
-         ("§" . god-mode-all)
-         ("C-§" . god-mode-all)
          ("C-<f2>" . sebe/god-mode-insert-at-point))
   :hook (god-local-mode . sebe/god-mode-hooks)
   :init (god-mode-all)
@@ -68,8 +66,17 @@ the modeline when toggling god-mode"
 
 (setq explicit-shell-file-name "bash")
 (setq shell-file-name explicit-shell-file-name)
-(add-to-list 'exec-path "bash")
+(add-to-list 'exec-path "BASH")
 
+;; COMPLETION SYSTEM
+;; Might need to comment this out, as the setup is not done
+(use-package helm-gtags
+  :defer t
+  :hook (c-mode-hook . helm-gtags-mode)
+  (c++-mode-hook . helm-gtags-mode)
+  (asm-mode-hook . helm-gtags-mode)
+  ;; :bind ("C-å" . 'helm-gtags-find-tag)
+  )
 ;; (add-to-list 'exec-path "c:/Program Files/Git/usr/bin")
 
 
@@ -133,8 +140,10 @@ the modeline when toggling god-mode"
 ;; Window management
 
 ;;(display-buffer-base-action ) ;; Check help for this function
+(setq window-min-height 30)
+(setq window-min-width 80)
 
-;; version control
+;; version control helper
 
 (defun revert-all-file-buffers ()
   "Refresh all open file buffers without confirmation.
@@ -163,26 +172,15 @@ will be killed."
 ;; global keymaps
 ;; Window management
 (global-set-key (kbd "C-x p") 'prev-window)
-(global-set-key (kbd "C-c o") 'next-double-window)
 (global-set-key (kbd "C-x C-n") (kbd "C-x C-<right>"))
 (global-set-key (kbd "C-x C-p") (kbd "C-x C-<left>"))
 (global-set-key (kbd "s-m") 'toggle-frame-maximized)
 
-;; Erasing
-(global-set-key (kbd "C-M-d") (kbd "<DEL>"))
-
-;; view settings
-(global-set-key (kbd "C-c C-x C-h") 'hl-line-mode)
-(global-set-key (kbd "C-c C-x C-r") 'auto-revert-mode)
-
 ;; manipulation
-;; (global-set-key (kbd "C-ö") 'replicate-line)
+(global-set-key (kbd "C-ö") 'replicate-line)
 
 ;; Buffers
 (global-set-key (kbd "C-x C-k") 'kill-buffer-and-window)
-
-;; Special
-(global-set-key (kbd "C-x c") 'org-capture)
 
 (defun replicate-line (&optional number-of-yanks)
   "Kill a whole line from anywhere in it then yank it 'number of yank' times"
@@ -208,8 +206,6 @@ will be killed."
 ;; Show lines and column on modeline
 (line-number-mode 1)
 (column-number-mode 1)
-
-
 
 ;; Display time on mode line
 (setq display-time-24hr-format t)
@@ -237,7 +233,6 @@ will be killed."
 
 ;; line number mode ============================================================
 ;; Following line replaced with the require in the defcustom function
-;;(require 'dispaly-line-numbers)
 
 (defcustom display-line-numbers-exempt-modes
   '(eshell-mode
@@ -324,14 +319,19 @@ If the heading exists then the point will be placed there, if not then
 (use-package org
   :ensure t
   ;; :config ('org-capture-templates )
-  :custom ((org-capture-templates
+  :custom (
+           (org-capture-templates
             '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
                "* TODO %?\n  %i\n  %a")
               ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
                "* %?")
-              ("j" "Journal" entry (file+olp+datetree org-default-journal-file)
-               "* [%<%H:%M>] %?"))))
+              ("j" "Journal" entry (file+olp+datetree org-default-journal-file))
+              )
+            )
+           )
+  :bind ("M-§" . 'org-capture)
   )
+
 
 ;; Tex mode ====================================================================
 
