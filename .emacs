@@ -5,6 +5,13 @@
 ;; Needed to byte-compile
 (require 'use-package)
 
+(use-package auto-compile
+  :ensure t
+  :config (auto-compile-on-load-mode)
+  )
+
+(setq load-prefer-newer t)
+
 (use-package god-mode
   :ensure t
   :bind (("M-i" . god-mode-all)
@@ -61,8 +68,9 @@ the modeline when toggling god-mode"
 (use-package projectile
   :ensure t
   :bind ("<f4>" . 'projectile-find-file)
-        ("C-<f4>" . 'projectile-find-file)
-  :init (projectile-mode))
+  ("C-<f4>" . 'projectile-find-file)
+  :init (projectile-mode)
+  (setq projectile-enable-caching nil))
 
 (setq explicit-shell-file-name "bash")
 (setq shell-file-name explicit-shell-file-name)
@@ -70,6 +78,13 @@ the modeline when toggling god-mode"
 
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
+(use-package helm
+  :defer t
+  :hook (c-mode-hook . helm-gtags-mode)
+  (c++-mode-hook . helm-gtags-mode)
+  (asm-mode-hook . helm-gtags-mode)
+  )
+
 (use-package helm-gtags
   :defer t
   :hook (c-mode-hook . helm-gtags-mode)
@@ -91,10 +106,10 @@ the modeline when toggling god-mode"
 
 
 ;; could be bad, will not let you save at all, until you correct the error
- (add-hook 'emacs-lisp-mode-hook
-  (lambda ()
-   (add-hook 'write-file-functions
-    'check-parens)))
+ ;; (add-hook 'emacs-lisp-mode-hook
+ ;;  (lambda ()
+ ;;   (add-hook 'write-file-functions
+ ;;    'check-parens)))
 
 ;; Long line behaviour
 (set-default 'truncate-lines t)
@@ -225,8 +240,9 @@ will be killed."
 
 (use-package olivetti
   :ensure t
-  :defer t
-  :hook (org-capture-mode . olivetti-mode)
+  :demand t
+;;  :hook (org-capture-mode)
+  :functions (olivetti-set-width)
   :config (olivetti-set-width 90)
   (auto-fill-mode 1)
   )
@@ -239,7 +255,8 @@ will be killed."
     shell-mode
     ansi-term-mode
     tex-mode latex-mode
-    org-mode)
+    org-mode
+    help-mode)
   "Major modes on which to disable line numbers"
   :require 'display-line-numbers
   :group 'display-line-numbers
@@ -266,18 +283,7 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 (add-hook 'c-mode-hook 'mp-add-c-keys)
 (add-hook 'c++-mode-hook 'mp-add-c-keys)
 
-;; Verilog mode ================================================================
-(setq verilog-indent-level 2)
-
 ;; Org mode ====================================================================
-
-;;(require 'org-capture-mode)
-
-(setq org-directory "~/AppData/Roaming/org")
-(setq org-default-notes-file (concat org-directory "/notes.org"))
-(setq org-default-todo-file (concat org-directory "/todos.org"))
-(setq org-default-journal-file (concat org-directory "/journal.org"))
-(setq org-default-books-file (concat org-directory "/books.org"))
 
 (defun sebe/re-seq (regexp string)
   "Get a list of all regexp matches in a string"
@@ -289,49 +295,52 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
         (setq pos (match-end 0)))
       matches)))
 
-(defun sebe/org-capture--notes ()
-  "Function to be used as a capture template for notes
-
-If the heading exists then the point will be placed there, if not then
-  the argument will be used to create a new heading"
-  (interactive)
-  ;; This call returns a list of all the level two headings in the file
-  ;; The problem with following call in an org file is that after the plain text, there are some font definitions and stuff
-  ;;    which messes up the string -> not a valid input argument
-  ;;(call-interactively sebe/re-seq (rx (= 2 "*") (* blank) (group (* (syntax w)))) (buffer-substring (point-min) (point-max)))
-  (let ((head (read-string "Desiered heading: ")))
-    (unless (re-search-forward
-             (rx (= 2 "*") (* blank)
-                 (group (literal head))) nil t)
-      (goto-char (point-max))
-      (insert (format "** %s" head))))
-  )
-
-(defun sebe/org-capture-setup ()
-  "Function to call with the org-capture hook"
-  (auto-fill-mode 1)
-  (setq fill-column 80)
-  (olivetti-mode 1)
-  (olivetti-set-width 80))
-
-(add-hook 'org-capture-mode-hook 'sebe/org-capture-setup)
-
 (use-package org
   :ensure t
   ;; :config ('org-capture-templates )
-  :custom (
-           (org-capture-templates
-            '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
-               "* TODO %?\n  %i\n  %a")
-              ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
-               "* %?")
-              ("j" "Journal" entry (file+olp+datetree org-default-journal-file))
-              )
-            )
+  :custom (org-capture-templates
+           '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
+              "* TODO %?\n  %i\n  %a")
+             ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
+              "* %?")
+             ("j" "Journal" entry (file+olp+datetree
+                                   org-default-journal-file)
+              "* [%<%H:%M>] %?")
+             ("b" "Book" entry (file+olp+datetree
+                                org-default-books-file)
+              "* [%<%H:%m>]
+Book: %^{Book title}
+Pages: %^{first page}-%^{last page}
+Take-aways: %?")
+             )
            )
   :bind ("M-§" . 'org-capture)
-  )
+  :config
+  (add-hook 'org-capture-mode 'olivetti-mode)
+  (setq org-directory "~/AppData/Roaming/org")
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-default-todo-file (concat org-directory "/todos.org"))
+  (setq org-default-journal-file (concat org-directory "/journal.org"))
+  (setq org-default-books-file (concat org-directory "/books.org"))
 
+  (defun sebe/org-capture--notes ()
+    "Function to be used as a capture template for notes
+
+     If the heading exists then the point will be placed there, if not then
+     the argument will be used to create a new heading"
+    (interactive)
+    ;; This call returns a list of all the level two headings in the file
+    ;; The problem with following call in an org file is that after the plain text, there are some font definitions and stuff
+    ;;    which messes up the string -> not a valid input argument
+    ;;(call-interactively sebe/re-seq (rx (= 2 "*") (* blank) (group (* (syntax w)))) (buffer-substring (point-min) (point-max)))
+    (let ((head (read-string "Desiered heading: ")))
+      (unless (re-search-forward
+               (rx (= 2 "*") (* blank)
+                   (group (literal head))) nil t)
+        (goto-char (point-max))
+        (insert (format "** %s" head))))
+    )
+  )
 
 ;; Tex mode ====================================================================
 
@@ -380,7 +389,7 @@ If the heading exists then the point will be placed there, if not then
   :ensure t
   :defer t
   :init
-  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+  ;; (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
   (advice-add 'python-mode :before 'elpy-enable))
 
 ;; (use-package py-autopep8
