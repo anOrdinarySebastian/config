@@ -190,6 +190,7 @@ will be killed."
 (global-set-key (kbd "C-x C-n") (kbd "C-x C-<right>"))
 (global-set-key (kbd "C-x C-p") (kbd "C-x C-<left>"))
 (global-set-key (kbd "s-m") 'toggle-frame-maximized)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
 
 ;; manipulation
 (global-set-key (kbd "C-ö") 'replicate-line)
