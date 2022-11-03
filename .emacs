@@ -1,6 +1,7 @@
 (package-initialize)
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(add-to-list 'package-archives '("melpa"
+                                 . "https://melpa.org/packages/"))
 
 ;; Needed to byte-compile
 (require 'use-package)
@@ -72,9 +73,14 @@ the modeline when toggling god-mode"
   :init (projectile-mode)
   (setq projectile-enable-caching nil))
 
-(setq explicit-shell-file-name "bash")
-(setq shell-file-name explicit-shell-file-name)
-(add-to-list 'exec-path "BASH")
+
+;; PATH modifictaions ==========================================================
+;; Pointing to the right find.exe
+
+(setq find-program "\"c:\\Program Files\\Git\\usr\\bin\\find.exe\"")
+;; (setq explicit-shell-file-name "bash")
+;; (setq shell-file-name explicit-shell-file-name)
+;; (add-to-list 'exec-path "BASH")
 
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
@@ -92,7 +98,7 @@ the modeline when toggling god-mode"
   (asm-mode-hook . helm-gtags-mode)
   ;; :bind ("C-å" . 'helm-gtags-find-tag)
   )
-;; (add-to-list 'exec-path "c:/Program Files/Git/usr/bin")
+
 
 
 ;; Indentation
@@ -155,7 +161,7 @@ the modeline when toggling god-mode"
 ;; Window management
 
 ;;(display-buffer-base-action ) ;; Check help for this function
-(setq window-min-height 30)
+(setq window-min-height 10)
 (setq window-min-width 80)
 
 ;; version control helper
@@ -298,25 +304,30 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 (use-package org
   :ensure t
-  ;; :config ('org-capture-templates )
-  :custom (org-capture-templates
-           '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
-              "* TODO %?\n  %i\n  %a")
-             ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
-              "* %?")
-             ("j" "Journal" entry (file+olp+datetree
-                                   org-default-journal-file)
-              "* [%<%H:%M>] %?")
-             ("b" "Book" entry (file+olp+datetree
-                                org-default-books-file)
-              "* [%<%H:%m>]
+  :custom
+  (org-capture-templates
+   '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
+      "* TODO %?\n  %i\n  %a")
+     ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
+      "* %?")
+     ("j" "Journal" entry (file+olp+datetree
+                           org-default-journal-file)
+      "* [%<%H:%M>] %?")
+     ("b" "Book" entry (file+olp+datetree
+                        org-default-books-file)
+      "* [%<%H:%m>]
 Book: %^{Book title}
 Pages: %^{first page}-%^{last page}
 Take-aways: %?")
-             )
-           )
+     )
+   )
   :bind ("M-§" . 'org-capture)
   :config
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     )
+   )
   (add-hook 'org-capture-mode 'olivetti-mode)
   (setq org-directory "~/AppData/Roaming/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
