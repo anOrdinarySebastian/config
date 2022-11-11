@@ -68,7 +68,8 @@ the modeline when toggling god-mode"
 
 (use-package projectile
   :ensure t
-  :bind ("<f4>" . 'projectile-find-file)
+  :bind
+  ("<f4>" . 'projectile-find-file)
   ("C-<f4>" . 'projectile-find-file)
   :init (projectile-mode)
   (setq projectile-enable-caching nil))
@@ -84,19 +85,26 @@ the modeline when toggling god-mode"
 
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
-(use-package helm
-  :defer t
-  :hook (c-mode-hook . helm-gtags-mode)
-  (c++-mode-hook . helm-gtags-mode)
-  (asm-mode-hook . helm-gtags-mode)
-  )
 
 (use-package helm-gtags
-  :defer t
+  :ensure t
+  :bind
+  ("M-." . 'helm-gtags-dwim)
+  ("M-," . 'helm-gtags-pop-stack)
+  ("C-c <" . 'helm-gtags-previous-history)
+  ("C-c >" . 'helm-gtags-next-history)
   :hook (c-mode-hook . helm-gtags-mode)
   (c++-mode-hook . helm-gtags-mode)
   (asm-mode-hook . helm-gtags-mode)
   ;; :bind ("C-å" . 'helm-gtags-find-tag)
+  )
+
+(use-package helm
+  :ensure t
+  :defer t
+  :hook (c-mode-hook . helm-gtags-mode)
+  (c++-mode-hook . helm-gtags-mode)
+  (asm-mode-hook . helm-gtags-mode)
   )
 
 
@@ -198,7 +206,7 @@ will be killed."
 (global-set-key (kbd "s-m") 'toggle-frame-maximized)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
-;; manipulation
+;; Editing
 (global-set-key (kbd "C-ö") 'replicate-line)
 
 ;; Buffers
@@ -219,11 +227,30 @@ will be killed."
   (yank)
   )
 
-;; Line highlighting and line number show
-;; (global-hl-line-mode t)
-;; global-display-line-number only works in emacs version > 26.1
-;;(global-linum-mode 0) ;; remove ugly linums
+;; line numbers
 (global-display-line-numbers-mode t)
+
+(defcustom display-line-numbers-exempt-modes
+  '(eshell-mode
+    shell-mode
+    ansi-term-mode
+    tex-mode latex-mode
+    org-mode
+    help-mode)
+  "Major modes on which to disable line numbers"
+  :require 'display-line-numbers
+  :group 'display-line-numbers
+  :type 'list
+  :version "green")
+
+(defun display-line-numbers--turn-on ()
+  "Turn on line numbers except for certain major modes.
+Exempt major modes are defined in `display-line-numbers-exempt-modes'"
+  (unless (or (minibufferp)
+              (member major-mode display-line-numbers-exempt-modes))
+    (display-line-numbers-mode)))
+
+(global-display-line-numbers-mode)
 
 ;; Show lines and column on modeline
 (line-number-mode 1)
@@ -254,56 +281,12 @@ will be killed."
   (auto-fill-mode 1)
   )
 
-;; line number mode ============================================================
-;; Following line replaced with the require in the defcustom function
-
-(defcustom display-line-numbers-exempt-modes
-  '(eshell-mode
-    shell-mode
-    ansi-term-mode
-    tex-mode latex-mode
-    org-mode
-    help-mode)
-  "Major modes on which to disable line numbers"
-  :require 'display-line-numbers
-  :group 'display-line-numbers
-  :type 'list
-  :version "green")
-
-(defun display-line-numbers--turn-on ()
-  "Turn on line numbers except for certain major modes.
-Exempt major modes are defined in `display-line-numbers-exempt-modes'"
-  (unless (or (minibufferp)
-              (member major-mode display-line-numbers-exempt-modes))
-    (display-line-numbers-mode)))
-
-(global-display-line-numbers-mode)
-
-;; C mode ======================================================================
-(defun mp-add-c-keys ()
-  (local-set-key "\C-cc" 'compile)
-  (local-set-key "\C-cr" 'gdb)
-  (local-set-key "\C-c\C-s" 'c-skeleton)
-  (setq compile-command "/app/vbuild/RHEL7-x86_64/matlab/2020b/bin/mex ../mex/mx_oa_czt.cpp -DVIVADO_HLS -DUSE_MEX -I/app/vbuild/RHEL7-x86_64/xilinx_vivado/2020.2/Vivado/2020.2/include/ -I/app/vbuild/RHEL7-x86_64/xilinx_vivado/2020.2/Vivado/2020.2/include/hls/dsp/util -I../cpp -I../cpp/libs -I../cpp/def -outdir ../mex")
-  )
-
-(add-hook 'c-mode-hook 'mp-add-c-keys)
-(add-hook 'c++-mode-hook 'mp-add-c-keys)
-
 ;; Org mode ====================================================================
-
-(defun sebe/re-seq (regexp string)
-  "Get a list of all regexp matches in a string"
-  (save-match-data
-    (let ((pos 0)
-          matches)
-      (while (string-match regexp string pos)
-        (push (match-string 0 string) matches)
-        (setq pos (match-end 0)))
-      matches)))
 
 (use-package org
   :ensure t
+  :bind ("M-§" . 'org-capture)
+  :hook (org-capture-mode . olivetti-mode)
   :custom
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
@@ -321,14 +304,12 @@ Pages: %^{first page}-%^{last page}
 Take-aways: %?")
      )
    )
-  :bind ("M-§" . 'org-capture)
   :config
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
      )
    )
-  (add-hook 'org-capture-mode 'olivetti-mode)
   (setq org-directory "~/AppData/Roaming/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
   (setq org-default-todo-file (concat org-directory "/todos.org"))
@@ -385,29 +366,26 @@ Take-aways: %?")
    )
   )
 
-
 ;; DocView Mode ================================================================
 
-(add-hook 'doc-view-mode (lambda ()
-                           (auto-revert-mode)))
+(use-package doc-view
+  :hook (doc-view-mode . (lambda () (auto-revert-mode))))
 
 ;; Python mode =================================================================
 (setq python-shell-interpreter "ipython"
       python-shell-interpreter-args "-i --simple-prompt")
-;,      python-shell-prompt-detect-failure-warning nil)
-;;(add-to-list 'python-shell-completion-native-disabled-interpreters "jupyter")
 
 (use-package elpy
   :ensure t
   :defer t
   :init
-  ;; (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
   (advice-add 'python-mode :before 'elpy-enable))
 
-;; (use-package py-autopep8
-;;   :ensure t
-;;   :defer t
-;;   :hook (elpy-mode . py-autopep8-mode))
+(use-package py-autopep8
+  :ensure t
+  :defer t
+  :hook (elpy-mode . py-autopep8-mode))
 
 (use-package pipenv
   :hook (python-mode . pipenv-mode))
@@ -420,16 +398,11 @@ Take-aways: %?")
 (add-hook 'compilation-mode-hook (lambda()
                                    (visual-line-mode t)))
 
+;; ================= GENERAL PURPOSE FUNCTIONS =================================
+
 (defun next-double-window ()
     (interactive nil)
         (other-window 2))
-
-;; Workaround to make the keyboard work again?! Avoiding dead keys
-(define-key key-translation-map [dead-grave] "`")
-(define-key key-translation-map [dead-acute] "'")
-(define-key key-translation-map [dead-circumflex] "^")
-(define-key key-translation-map [dead-diaeresis] "\"")
-(define-key key-translation-map [dead-tilde] "~")
 
 (defun comment-arrow (&optional endline)
   "Funciton for making an arrow ending at col 80 or col endline"
@@ -442,8 +415,26 @@ Take-aways: %?")
     (insert (make-string (- col_diff 3) ?=)))
   ))
 
+(defun sebe/re-seq (regexp string)
+  "Get a list of all regexp matches in a string"
+  (save-match-data
+    (let ((pos 0)
+          matches)
+      (while (string-match regexp string pos)
+        (push (match-string 0 string) matches)
+        (setq pos (match-end 0)))
+      matches)))
 
-;; No touch - Emacs config
+;; ================= SPECIAL PURPOSE FIXES =====================================
+
+;; ;; Workaround to make the keyboard work again?! Avoiding dead keys
+;; (define-key key-translation-map [dead-grave] "`")
+;; (define-key key-translation-map [dead-acute] "'")
+;; (define-key key-translation-map [dead-circumflex] "^")
+;; (define-key key-translation-map [dead-diaeresis] "\"")
+;; (define-key key-translation-map [dead-tilde] "~")
+
+;; ================= NO TOUCH - EMACS CONFIG ===================================
 
 (custom-set-variables
  '(ansi-color-names-vector
@@ -461,15 +452,6 @@ Take-aways: %?")
  '(elpy-syntax-check-command "pycodestyle")
  '(fringe-mode 0 nil (fringe))
  '(inhibit-startup-screen t)
- '(org-capture-mode-hook '(visual-line-mode))
- ;; '(org-mode-hook
- ;;   '(#[0 "\300\301\302\303\304$\207"
- ;;         [add-hook change-major-mode-hook org-show-all append local]
- ;;         5]
- ;;     #[0 "\300\301\302\303\304$\207"
- ;;         [add-hook change-major-mode-hook org-babel-show-result-all append local]
- ;;         5]
- ;;     org-babel-result-hide-spec org-babel-hide-all-hashes))
  '(package-selected-packages
    '(py-autopep8 olivetti projectile perspective elpy magit god-mode pipenv helm auctex jedi))
  '(projectile-project-search-path '("~/git/"))
