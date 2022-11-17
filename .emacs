@@ -1,3 +1,4 @@
+
 (package-initialize)
 (require 'package)
 (add-to-list 'package-archives '("melpa"
@@ -204,7 +205,7 @@ will be killed."
 (global-set-key (kbd "C-x C-n") (kbd "C-x C-<right>"))
 (global-set-key (kbd "C-x C-p") (kbd "C-x C-<left>"))
 (global-set-key (kbd "s-m") 'toggle-frame-maximized)
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "C-x C-b") 'persp-ibuffer)
 
 ;; Editing
 (global-set-key (kbd "C-ö") 'replicate-line)
@@ -271,7 +272,13 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 (electric-pair-mode t)
 
 ;; ================= MODE SPECIFICS ============================================
+;; Markdown mode ===============================================================
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown"))
 
+;; Olivetti mode ===============================================================
 (use-package olivetti
   :ensure t
   :demand t
@@ -283,10 +290,19 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 ;; Org mode ====================================================================
 
+(use-package org-jira
+  :ensure t
+  :config
+  (setq org-jira-working-dir "~/Documents/org/.jira")
+  (setq jiralib-url "https://jira.hms.se"))
+
 (use-package org
   :ensure t
   :bind ("M-§" . 'org-capture)
-  :hook (org-capture-mode . olivetti-mode)
+  :hook
+  (org-capture-mode . olivetti-mode)
+  (org-capture-mode . (lambda ()
+                        (god-local-mode 0)))
   :custom
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
@@ -310,7 +326,7 @@ Take-aways: %?")
    '((python . t)
      )
    )
-  (setq org-directory "~/AppData/Roaming/org")
+  (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
   (setq org-default-todo-file (concat org-directory "/todos.org"))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
