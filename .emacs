@@ -19,17 +19,12 @@
   :functions
   sebe/god-mode-update-mode-line-and-cursor
   sebe/god-mode-toggle-on-overwrite
-  :sbind (("M-i" . god-mode-all)
+  :bind (("M-i" . god-mode-all)
          ("<f2>" . sebe/god-mode-insert-at-point))
-  :hook (god-local-mode . sebe/god-mode-hooks)
   :init
   (setq god-mode-enable-function-key-translation nil)
   :config
-  ;;(god-mode-all)
-  (defun sebe/god-mode-hooks ()
-    "Collector function that runs all applicable hooks"
-    (sebe/god-mode-toggle-on-overwrite)
-    (sebe/god-mode-update-mode-line-and-cursor))
+  (god-mode-all)
 
   (defun sebe/god-mode-insert-at-point (comment text)
   "Insert some text without exiting god mode"
@@ -45,24 +40,26 @@
         (god-local-mode-pause)
       (god-local-mode-resume)))
 
-  (defun sebe/god-mode-update-mode-line-and-cursor ()
+  (defun sebe/god-mode-update-cursor ()
+    (setq cursor-type (if (or (god-local-mode buffer-read-only) 'box 'bar)))
+    )
+
+  (defun sebe/god-mode-update-mode-line ()
     "Toggle between differnet colors of both the cursor and
 the modeline when toggling god-mode"
     (cond
      (god-local-mode
       (set-face-attribute 'mode-line nil
-                          :foreground "midnight blue"
-                          :background "snow")
-      (set-face-attribute 'cursor nil
-                          :background "snow")
-      (message "God mode: enabled"))
+                          :foreground "dark slate gray"
+                          :background "snow"))
      (t
       (set-face-attribute 'mode-line nil
-			                    :foreground "midnight blue"
-			                    :background "sky blue")
-      (set-face-attribute 'cursor nil
-                          :background "sky blue")
-      (message "God mode: disabled"))))
+			                    :foreground "lavender"
+			                    :background "gray10"))
+     ))
+
+  (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
+  (add-hook 'post-command-hook 'sebe/god-mode-update-cursor)
   )
 
 (use-package perspective
@@ -176,6 +173,8 @@ the modeline when toggling god-mode"
 ;; display-buffer-alist <- customize this to set buffers that should use the same window
 (setq window-min-height 10)
 (setq window-min-width 80)
+
+(setq window-selection-change-functions 'sebe/god-mode-update-mode-line-and-cursor)
 
 ;; version control helper
 
