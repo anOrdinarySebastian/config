@@ -16,12 +16,16 @@
 
 (use-package god-mode
   :ensure t
-  :bind (("M-i" . god-mode-all)
-         ("C-<f2>" . sebe/god-mode-insert-at-point))
+  :functions
+  sebe/god-mode-update-mode-line-and-cursor
+  sebe/god-mode-toggle-on-overwrite
+  :sbind (("M-i" . god-mode-all)
+         ("<f2>" . sebe/god-mode-insert-at-point))
   :hook (god-local-mode . sebe/god-mode-hooks)
-  :init (god-mode-all)
+  :init
+  (setq god-mode-enable-function-key-translation nil)
   :config
-
+  ;;(god-mode-all)
   (defun sebe/god-mode-hooks ()
     "Collector function that runs all applicable hooks"
     (sebe/god-mode-toggle-on-overwrite)
@@ -88,27 +92,26 @@ the modeline when toggling god-mode"
 ;; Might need to comment this out, as the setup is not done
 
 (use-package helm-gtags
-  :ensure t
+  :defer t
   :bind
   ("M-." . 'helm-gtags-dwim)
   ("M-," . 'helm-gtags-pop-stack)
   ("C-c <" . 'helm-gtags-previous-history)
   ("C-c >" . 'helm-gtags-next-history)
-  :hook (c-mode-hook . helm-gtags-mode)
+  ;; :bind ("C-å" . 'helm-gtags-find-tag)
+  :hook
+  (c-mode-hook . helm-gtags-mode)
   (c++-mode-hook . helm-gtags-mode)
   (asm-mode-hook . helm-gtags-mode)
-  ;; :bind ("C-å" . 'helm-gtags-find-tag)
   )
 
 (use-package helm
   :ensure t
-  :defer t
-  :hook (c-mode-hook . helm-gtags-mode)
-  (c++-mode-hook . helm-gtags-mode)
-  (asm-mode-hook . helm-gtags-mode)
+  :config
+  (helm-mode 1)
+  :bind
+  ("M-x" . 'helm-M-x)
   )
-
-
 
 ;; Indentation
 (setq standard-indent 2)
@@ -167,9 +170,10 @@ the modeline when toggling god-mode"
 	(interactive nil)
 	(other-window -1))
 
-;; Window management
+;; Window management ===========================================================
 
 ;;(display-buffer-base-action ) ;; Check help for this function
+;; Display Buffer Alist <- customize this to set buffers that should use the same window
 (setq window-min-height 10)
 (setq window-min-width 80)
 
@@ -272,6 +276,14 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 (electric-pair-mode t)
 
 ;; ================= MODE SPECIFICS ============================================
+
+;; dtrt-indent =================================================================
+(use-package dtrt-indent
+  :ensure t
+  :config (dtrt-indent-global-mode t)
+  )
+
+
 ;; Markdown mode ===============================================================
 (use-package markdown-mode
   :ensure t
@@ -298,11 +310,21 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 (use-package org
   :ensure t
-  :bind ("M-§" . 'org-capture)
+  :bind
+  ("M-§" . 'org-capture)
   :hook
   (org-capture-mode . olivetti-mode)
+  (org-capture-mode . auto-fill-mode)
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
+  :init
+  (defun sebe/org-capture-jira-completion ()
+    "Function returning a string based on the current jira issues described in the
+`sebe/current-jira-issues' list. Hopefully, this can be extended with the option
+of adding new issues too"
+    (interactive)
+    (completing-read "Jira issue: " 'sebe/current-jira-issues ) ;; Look at the info node 21.6.2
+    )
   :custom
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
@@ -312,6 +334,9 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
      ("j" "Journal" entry (file+olp+datetree
                            org-default-journal-file)
       "* [%<%H:%M>] %?")
+     ("J" "Jira Journal" entry (file+olp+datetree
+                           org-default-journal-file)
+      "* [%<%H:%M>] %(sebe/org-capture-jira-completion)\n%?")
      ("b" "Book" entry (file+olp+datetree
                         org-default-books-file)
       "* [%<%H:%m>]
@@ -440,6 +465,14 @@ Take-aways: %?")
         (push (match-string 0 string) matches)
         (setq pos (match-end 0)))
       matches)))
+
+;; ================= GLOBAL VARIABLES ==========================================
+
+;; Maybe this should just part of the org startup, but it doens't quite fit in
+;; Createing the list
+(setq sebe/current-jira-issues (list))
+;; Adding entry to the list
+(setq sebe/current-jira-issues (cons "A7714-1109" sebe/current-jira-issues))
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
 
