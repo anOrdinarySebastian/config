@@ -173,7 +173,7 @@ the modeline when toggling god-mode"
 ;; Window management ===========================================================
 
 ;;(display-buffer-base-action ) ;; Check help for this function
-;; Display Buffer Alist <- customize this to set buffers that should use the same window
+;; display-buffer-alist <- customize this to set buffers that should use the same window
 (setq window-min-height 10)
 (setq window-min-width 80)
 
