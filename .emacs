@@ -27,12 +27,12 @@
   (god-mode-all)
 
   (defun sebe/god-mode-insert-at-point (comment text)
-  "Insert some text without exiting god mode"
-  (interactive "P\nMText to insert: ")
-  (insert text)
-  (if comment
-      (comment-line 1))
-  )
+    "Insert some text without exiting god mode"
+    (interactive "P\nMText to insert: ")
+    (insert text)
+    (if comment
+        (comment-line 1))
+    )
 
   (defun sebe/god-mode-toggle-on-overwrite ()
     "Toggle god-mode on overwrite-mode."
@@ -40,9 +40,8 @@
         (god-local-mode-pause)
       (god-local-mode-resume)))
 
-  (defun sebe/god-mode-update-cursor ()
-    (setq cursor-type (if (or (god-local-mode buffer-read-only) 'box 'bar)))
-    )
+  ;; (defun sebe/god-mode-update-cursor ()
+  ;;   (setq cursor-type (if (or (god-local-mode buffer-read-only) 'box 'bar))))
 
   (defun sebe/god-mode-update-mode-line ()
     "Toggle between differnet colors of both the cursor and
@@ -50,16 +49,17 @@ the modeline when toggling god-mode"
     (cond
      (god-local-mode
       (set-face-attribute 'mode-line nil
-                          :foreground "dark slate gray"
-                          :background "snow"))
+			                    :foreground "lavender"
+			                    :background "gray10")
+      (setq cursor-type 'box))
      (t
       (set-face-attribute 'mode-line nil
-			                    :foreground "lavender"
-			                    :background "gray10"))
-     ))
+                          :foreground "dark slate gray"
+                          :background "snow")
+      (setq cursor-type 'bar))
+     )
 
   (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
-  (add-hook 'post-command-hook 'sebe/god-mode-update-cursor)
   )
 
 (use-package perspective
@@ -88,6 +88,14 @@ the modeline when toggling god-mode"
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
 
+(use-package helm
+  :ensure t
+  :config
+  (helm-mode 1)
+  :bind
+  ("M-x" . 'helm-M-x)
+  )
+
 (use-package helm-gtags
   :defer t
   :bind
@@ -102,13 +110,11 @@ the modeline when toggling god-mode"
   (asm-mode-hook . helm-gtags-mode)
   )
 
-(use-package helm
-  :ensure t
+(use-package company
   :config
-  (helm-mode 1)
-  :bind
-  ("M-x" . 'helm-M-x)
-  )
+  (c-mode-hook . company-mode)
+  (c++-mode-hook . company-mode)
+)
 
 ;; Indentation
 (setq standard-indent 2)
@@ -205,6 +211,7 @@ will be killed."
 ;; global keymaps
 ;; Window management
 (global-set-key (kbd "C-x p") 'prev-window)
+(global-set-key (kbd "C-x O") 'other-frame)
 (global-set-key (kbd "C-x C-n") (kbd "C-x C-<right>"))
 (global-set-key (kbd "C-x C-p") (kbd "C-x C-<left>"))
 (global-set-key (kbd "s-m") 'toggle-frame-maximized)
@@ -275,6 +282,14 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 (electric-pair-mode t)
 
 ;; ================= MODE SPECIFICS ============================================
+
+;; c mode ======================================================================
+
+(setq company-backends (delete 'company-semantic company-backends))
+(define-key c-mode-map  [(tab)] 'company-complete)
+(define-key c-mode-map  (kbd "C-M-i") 'c-indent-line-or-region)
+(define-key c++-mode-map  [(tab)] 'company-complete)
+(define-key c++-mode-map  (kbd "C-M-i") 'c-indent-line-or-region)
 
 ;; dtrt-indent =================================================================
 (use-package dtrt-indent
