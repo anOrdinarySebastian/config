@@ -286,10 +286,10 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 ;; c mode ======================================================================
 
 (setq company-backends (delete 'company-semantic company-backends))
-(define-key c-mode-map  [(tab)] 'company-complete)
-(define-key c-mode-map  (kbd "C-M-i") 'c-indent-line-or-region)
-(define-key c++-mode-map  [(tab)] 'company-complete)
-(define-key c++-mode-map  (kbd "C-M-i") 'c-indent-line-or-region)
+(define-key c-mode-map  (kbd "C-M-i") 'company-complete)
+(define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
+(define-key c++-mode-map  (kbd "C-M-i") 'company-complete)
+(define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
 
 ;; dtrt-indent =================================================================
 (use-package dtrt-indent
@@ -500,9 +500,20 @@ Take-aways: %?")
 ;; ================= NO TOUCH - EMACS CONFIG ===================================
 
 (custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "#d0d0d0"])
  '(custom-enabled-themes '(manoj-dark))
+ '(display-buffer-alist
+   '(("\\*Help\\*"
+      (display-buffer-same-window))
+     ("\\*Compilation.*" display-buffer-same-window)
+     ("\\*Find.*" display-buffer-same-window)
+     ("\\*Customize" display-buffer-same-window)
+     ("\\*vc-.*" display-buffer-same-window)))
  '(display-buffer-base-action '((display-buffer-below-selected)))
  '(doc-view-continuous t)
  '(doc-view-resolution 300)
@@ -513,23 +524,36 @@ Take-aways: %?")
  '(elpy-project-root-finder-functions
    '(elpy-project-find-projectile-root elpy-project-find-git-root))
  '(elpy-syntax-check-command "pycodestyle")
+ '(exec-path
+   '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Program Files/Python/Python310/Scripts/" "C:/Program Files/Python/Python310/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
  '(fringe-mode 0 nil (fringe))
  '(inhibit-startup-screen t)
  '(package-selected-packages
    '(py-autopep8 olivetti projectile perspective elpy magit god-mode pipenv helm auctex jedi))
  '(projectile-project-search-path '("~/git/"))
+ '(same-window-regexps nil)
  '(show-paren-mode t)
+ '(smerge-command-prefix "")
  '(split-height-threshold nil)
  '(split-width-threshold 160))
 (custom-set-faces
- '(default ((t (:inherit nil :stipple nil :background "black" :foreground "dark gray" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "1ASC" :family "Consolas"))))
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
  '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
+ '(cursor ((t (:background "lavender"))))
  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
- '(font-lock-constant-face ((t (:foreground "dark slate blue" :weight bold))))
- '(font-lock-function-name-face ((t (:foreground "steel blue" :weight bold :height 1.05))))
+ '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
+ '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
+ '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
  '(font-lock-keyword-face ((t (:foreground "cyan3"))))
  '(font-lock-string-face ((t (:foreground "lavender"))))
+ '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
+ '(helm-selection ((t (:extend t :distant-foreground "black" :box (:line-width (2 . 2) :color "grey75" :style released-button) :weight bold))))
+ '(helm-source-header ((t (:extend t :background "#22083397778B" :foreground "white" :weight bold :family "Sans Serif"))))
  '(hi-yellow ((t (:background "orange4" :foreground "black"))))
  '(mode-line ((t (:inherit mode-line-buffer-id :background "sky blue" :foreground "Blue" :slant normal :height 0.95))))
  '(mode-line-buffer-id ((t (:inherit mode-line :slant italic :weight bold :height 1.0))))
