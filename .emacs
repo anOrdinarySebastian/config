@@ -17,15 +17,15 @@
 (use-package god-mode
   :ensure t
   :functions
+  sebe/god-mode-insert-at-point
   sebe/god-mode-update-mode-line-and-cursor
   sebe/god-mode-toggle-on-overwrite
-  :bind (("M-i" . god-mode-all)
-         ("<f2>" . sebe/god-mode-insert-at-point))
+  :bind
+  ("M-i" . god-mode-all)
+  ;; ("<f2>" . sebe/god-mode-insert-at-point)
   :init
   (setq god-mode-enable-function-key-translation nil)
   :config
-  (god-mode-all)
-
   (defun sebe/god-mode-insert-at-point (comment text)
     "Insert some text without exiting god mode"
     (interactive "P\nMText to insert: ")
@@ -58,9 +58,8 @@ the modeline when toggling god-mode"
                           :background "snow")
       (setq cursor-type 'bar))
      )
-
-    (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
     )
+  (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
   )
 
 (use-package perspective
@@ -112,10 +111,20 @@ the modeline when toggling god-mode"
   )
 
 (use-package company
-  :hook
-  (c-mode-hook . company-mode)
-  (c++-mode-hook . company-mode)
-)
+    :hook
+    (c-mode-hook . company-mode)
+    (c++-mode-hook . company-mode)
+    :config
+    (setq company-backends (delete 'company-semantic company-backends))
+    )
+
+(use-package cc-mode
+    :config
+  (define-key c-mode-map  (kbd "C-M-i") 'company-complete)
+  (define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
+  (define-key c++-mode-map  (kbd "C-M-i") 'company-complete)
+  (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
+  )
 
 ;; Indentation
 (setq standard-indent 2)
@@ -180,8 +189,6 @@ the modeline when toggling god-mode"
 ;; display-buffer-alist <- customize this to set buffers that should use the same window
 (setq window-min-height 10)
 (setq window-min-width 80)
-
-(setq window-selection-change-functions 'sebe/god-mode-update-mode-line-and-cursor)
 
 ;; version control helper
 
@@ -285,12 +292,6 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 ;; ================= MODE SPECIFICS ============================================
 
 ;; c mode ======================================================================
-
-(setq company-backends (delete 'company-semantic company-backends))
-(define-key c-mode-map  (kbd "C-M-i") 'company-complete)
-(define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
-(define-key c++-mode-map  (kbd "C-M-i") 'company-complete)
-(define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
 
 ;; dtrt-indent =================================================================
 (use-package dtrt-indent
@@ -483,7 +484,9 @@ Take-aways: %?")
 ;; Createing the list
 (setq sebe/current-jira-issues (list))
 ;; Adding entry to the list
-(setq sebe/current-jira-issues (cons "A7714-1109" sebe/current-jira-issues))
+(setq sebe/current-jira-issues (cons "A7714-1109"
+                                     sebe/current-jira-issues))
+(add-to-list 'sebe/current-jira-issues "A7750-402")
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
 
