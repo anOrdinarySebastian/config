@@ -190,8 +190,6 @@ the modeline when toggling god-mode"
 (setq window-min-height 10)
 (setq window-min-width 80)
 
-(setq window-selection-change-functions 'sebe/god-mode-update-mode-line-and-cursor)
-
 ;; version control helper
 
 (defun revert-all-file-buffers ()
