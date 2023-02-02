@@ -60,7 +60,49 @@ the modeline when toggling god-mode"
      )
     )
   (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
+  (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
   )
+
+(use-package general
+  :ensure t
+  :config
+  (setq sebe/keymap (make-sparse-keymap))
+  (defconst sebe/main-leader-key "C-.")
+  (defconst sebe/math-leader-key "C-. m")
+  (defconst sebe/edit-leader-key "C-. e")
+  (defconst sebe/window-leader-key "C-. w")
+  (general-create-definer sebe/leader-definer
+                          :prefix sebe/main-leader-key)
+  (general-create-definer sebe/math-leader-definer
+                          :prefix sebe/math-leader-key)
+  (general-create-definer sebe/edit-leader-definer
+                          :prefix sebe/edit-leader-key)
+  (general-create-definer sebe/window-leader-definer
+                          :prefix sebe/window-leader-key)
+  (general-define-key
+   "C-ö" 'replicate-line)
+
+  (general-define-key
+   :prefix "C-x"
+   "p" 'prev-window
+   "O" 'other-frame
+   "C-n" (kbd "C-x C-<right>")
+   "C-p" (kbd "C-x C-<left>")
+   "C-k" 'kill-buffer-and-window)
+
+  (sebe/math-leader-definer
+    "+" 'org-increase-number-at-point
+    "-" 'org-decrease-number-at-point)
+  (sebe/edit-leader-definer
+    "e" (lambda ()
+          (interactive)
+          (find-file "c:/Users/sebe/.emacs")))
+  (sebe/window-leader-definer
+   "s" 'toggle-window-split)
+  )
+
+(use-package project
+  :disabled t)
 
 (use-package perspective
   :ensure t
