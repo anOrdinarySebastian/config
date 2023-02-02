@@ -156,25 +156,28 @@ the modeline when toggling god-mode"
   ("C-c >" . 'helm-gtags-next-history)
   ;; :bind ("C-å" . 'helm-gtags-find-tag)
   :hook
-  (c-mode-hook . helm-gtags-mode)
-  (c++-mode-hook . helm-gtags-mode)
-  (asm-mode-hook . helm-gtags-mode)
+  (c-mode . helm-gtags-mode)
+  (c++-mode . helm-gtags-mode)
+  (asm-mode . helm-gtags-mode)
+  (python-mode . helm-gtags-mode)
   )
 
 (use-package company
-    :hook
-    (c-mode-hook . company-mode)
-    (c++-mode-hook . company-mode)
+    ;; :hook
+    ;; (c-mode-hook . company-mode)
+  ;; (c++-mode-hook . company-mode)
+  :bind ("C-M-i" . 'company-complete)
     :config
     (setq company-backends (delete 'company-semantic company-backends))
+    (global-company-mode 1)
+    (global-set-key (kbd "C-M-i") 'company-complete)
+    (define-key company-mode-map  (kbd "C-M-i") 'company-complete)
     )
 
 (use-package cc-mode
     :config
-  (define-key c-mode-map  (kbd "C-M-i") 'company-complete)
-  (define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
-  (define-key c++-mode-map  (kbd "C-M-i") 'company-complete)
-  (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
+    (define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
+    (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
   )
 
 ;; Indentation
