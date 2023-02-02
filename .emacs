@@ -393,18 +393,45 @@ of adding new issues too"
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
       "* TODO %?\n  %i\n  %a")
+
      ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
       "* %?")
-     ("j" "Journal" entry (file+olp+datetree
-                           org-default-journal-file)
-      "* [%<%H:%M>] %?")
-     ("J" "Jira Journal" entry (file+olp+datetree
-                           org-default-journal-file)
-      "* [%<%H:%M>] %(sebe/org-capture-jira-completion)\n%?")
+     ;; ("n" "Notes" entry (file+function org-default-notes-file (lambda () (interactive) (format "^\\*\\*%s" (read-string "Desired heading: "))))
+     ;;  "* %?")
+
+     ("j" "Journal")
+     ("js" "Start day" entry (file+olp+datetree
+                              org-default-journal-file)
+       "* [%<%H:%M>] Started\n\nGoals\n\
+- [ ] News\n\
+- [ ] Jira\n\
+- [ ] Gerrit%?"
+       :clock-in t
+       :clock-keep t)
+
+     ("jq" "Quit day" entry (file+olp+datetree org-default-journal-file)
+      (function (lambda ()
+        (org-clock-out)
+         "* [%<%H:%M>] Quit\n%?"))
+      ;; "* [%<%H:%M>] Quit\n%?"
+      ;; :tree-type week)
+      )
+
+     ;; ("j" "Journal" entry (file+olp+datetree
+     ;;                       org-default-journal-file)
+     ;;  "* [%<%H:%M>] %^{Why?|Started|Quit|Lunch|Back|Log}\n%?")
+
+     ("jj" "Jira Journal" entry (file+olp+datetree
+                                org-default-journal-file)
+      "* [%<%H:%M>] Log\n%^{Jira}p\n%?")
+     ("jm" "Meeting Journal "entry (file+olp+datetree
+                                   org-default-journal-file)
+      "* [%<%H:%M>] Meeting [%^{Minutes}m]\n%^{Topic}p%?")
+
      ("b" "Book" entry (file+olp+datetree
                         org-default-books-file)
-      "* [%<%H:%m>]
-Book: %^{Book title}
+      "* [%<%H:%M>]
+Book: %^{Book title}p
 Pages: %^{first page}-%^{last page}
 Take-aways: %?")
      )
