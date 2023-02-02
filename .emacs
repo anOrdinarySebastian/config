@@ -112,11 +112,20 @@ the modeline when toggling god-mode"
 
 (use-package projectile
   :ensure t
+  :functions
+  sebe/projectile-find-or-switch
   :bind
-  ("<f4>" . 'projectile-find-file)
-  ("C-<f4>" . 'projectile-find-file)
+  ("<f4>" . 'sebe/projectile-find-or-switch)
   :init (projectile-mode)
-  (setq projectile-enable-caching nil))
+  (setq projectile-enable-caching nil)
+  :config
+  (defun sebe/projectile-find-or-switch (switch)
+    "Find or switch depending on universal argument"
+    (interactive "P")
+    (if switch
+        (projectile-switch-project)
+      (projectile-find-file)))
+  )
 
 
 ;; PATH modifictaions ==========================================================
