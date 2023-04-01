@@ -66,19 +66,23 @@ the modeline when toggling god-mode"
 (use-package general
   :ensure t
   :config
-  (setq sebe/keymap (make-sparse-keymap))
+  ;; (setq sebe/keymap (make-sparse-keymap))
   (defconst sebe/main-leader-key "C-.")
-  (defconst sebe/math-leader-key "C-. m")
-  (defconst sebe/edit-leader-key "C-. e")
-  (defconst sebe/window-leader-key "C-. w")
-  (general-create-definer sebe/leader-definer
-                          :prefix sebe/main-leader-key)
+  (defconst sebe/math-leader-key (concat sebe/main-leader-key " m"))
+  (defconst sebe/edit-leader-key (concat sebe/main-leader-key " e"))
+  (defconst sebe/window-leader-key (concat sebe/main-leader-key " w"))
+  (defconst sebe/projectile-leader-key (concat sebe/main-leader-key " p"))
+  (general-create-definer sebe/main-leader-definer
+    :prefix sebe/main-leader-key)
   (general-create-definer sebe/math-leader-definer
-                          :prefix sebe/math-leader-key)
+    :prefix sebe/math-leader-key)
   (general-create-definer sebe/edit-leader-definer
-                          :prefix sebe/edit-leader-key)
+    :prefix sebe/edit-leader-key)
   (general-create-definer sebe/window-leader-definer
-                          :prefix sebe/window-leader-key)
+    :prefix sebe/window-leader-key)
+  (general-create-definer sebe/projectile-leader-definer
+    :prefix sebe/projectile-leader-key)
+
   (general-define-key
    "C-ö" 'replicate-line)
 
@@ -90,15 +94,27 @@ the modeline when toggling god-mode"
    "C-p" (kbd "C-x C-<left>")
    "C-k" 'kill-buffer-and-window)
 
+  (sebe/main-leader-definer
+    "r" 'revert-buffer
+    "f" 'fixup-whitespace
+    "d l" 'kill-whole-line)
+
   (sebe/math-leader-definer
     "+" 'org-increase-number-at-point
     "-" 'org-decrease-number-at-point)
   (sebe/edit-leader-definer
     "e" (lambda ()
           (interactive)
-          (find-file "c:/Users/sebe/.emacs")))
+          (find-file "~/.emacs"))
+    "s" 'flyspell-auto-correct-word)
   (sebe/window-leader-definer
-   "s" 'toggle-window-split)
+    "s" 'toggle-window-split
+    "f" 'fit-window-to-buffer)
+
+  (sebe/projectile-leader-definer
+   "f" 'projectile-find-file
+   "C-f" 'projectile-persp-switch-project
+   "d" 'projectile-find-dir)
   )
 
 (use-package project
@@ -123,7 +139,7 @@ the modeline when toggling god-mode"
     "Find or switch depending on universal argument"
     (interactive "P")
     (if switch
-        (projectile-switch-project)
+        (projectile-persp-switch-project)
       (projectile-find-file)))
   )
 
@@ -144,7 +160,8 @@ the modeline when toggling god-mode"
   :config
   (helm-mode 1)
   :bind
-  ;; ("M-x" . 'helm-M-x)
+  ("M-x" . 'helm-M-x)
+  ("C-x C-f" . 'helm-find-files)
   )
 
 (use-package helm-gtags
@@ -159,7 +176,7 @@ the modeline when toggling god-mode"
   (c-mode . helm-gtags-mode)
   (c++-mode . helm-gtags-mode)
   (asm-mode . helm-gtags-mode)
-  (python-mode . helm-gtags-mode)
+  ;; (python-mode . helm-gtags-mode)
   )
 
 (use-package company
@@ -270,20 +287,6 @@ will be killed."
   (message "Finished reverting buffers containing unmodified files."))
 
 ;; ====== HOTKEYS ====================================================
-;; global keymaps
-;; Window management
-(global-set-key (kbd "C-x p") 'prev-window)
-(global-set-key (kbd "C-x O") 'other-frame)
-(global-set-key (kbd "C-x C-n") (kbd "C-x C-<right>"))
-(global-set-key (kbd "C-x C-p") (kbd "C-x C-<left>"))
-(global-set-key (kbd "s-m") 'toggle-frame-maximized)
-(global-set-key (kbd "C-x C-b") 'persp-ibuffer)
-
-;; Editing
-(global-set-key (kbd "C-ö") 'replicate-line)
-
-;; Buffers
-(global-set-key (kbd "C-x C-k") 'kill-buffer-and-window)
 
 (defun replicate-line (&optional number-of-yanks)
   "Kill a whole line from anywhere in it then yank it 'number of yank' times"
@@ -309,7 +312,10 @@ will be killed."
     ansi-term-mode
     tex-mode latex-mode
     org-mode
-    help-mode)
+    help-mode
+    eww-mode
+    compilation-mode
+    markdown-mode)
   "Major modes on which to disable line numbers"
   :require 'display-line-numbers
   :group 'display-line-numbers
@@ -349,7 +355,8 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 ;; dtrt-indent =================================================================
 (use-package dtrt-indent
-  :ensure t
+  :disabled t
+  :ensure nil
   :config (dtrt-indent-global-mode t)
   )
 
@@ -372,18 +379,25 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 ;; Org mode ====================================================================
 
+(use-package flyspell
+  :config
+  (define-key flyspell-mode-map (kbd "C-M-i") nil)
+  (define-key flyspell-mode-map (kbd "C-.") nil)
+  )
+
 (use-package org
   :ensure t
   :bind
   ("M-§" . 'org-capture)
   :hook
+  (org-mode . flyspell-mode)
   (org-capture-mode . olivetti-mode)
   (org-capture-mode . auto-fill-mode)
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
   :init
   (defun sebe/org-capture-jira-completion ()
-    "Function returning a string based on the current jira issues described in the
+    "Function returning a strig based on the current jira issues described in the
 `sebe/current-jira-issues' list. Hopefully, this can be extended with the option
 of adding new issues too"
     (interactive)
@@ -403,9 +417,11 @@ of adding new issues too"
      ("js" "Start day" entry (file+olp+datetree
                               org-default-journal-file)
        "* [%<%H:%M>] Started\n\nGoals\n\
+- [ ] Report time%?\n\
 - [ ] News\n\
+- [ ] Mail\n\
 - [ ] Jira\n\
-- [ ] Gerrit%?"
+- [ ] Gerrit"
        :clock-in t
        :clock-keep t)
 
@@ -413,25 +429,30 @@ of adding new issues too"
       (function (lambda ()
         (org-clock-out)
          "* [%<%H:%M>] Quit\n%?"))
-      ;; "* [%<%H:%M>] Quit\n%?"
-      ;; :tree-type week)
       )
+     ("jp" "Pause" entry (file+olp+datetree org-default-journal-file)
+      "* [%<%H:%M>] Paused\n%?")
 
-     ;; ("j" "Journal" entry (file+olp+datetree
-     ;;                       org-default-journal-file)
-     ;;  "* [%<%H:%M>] %^{Why?|Started|Quit|Lunch|Back|Log}\n%?")
+     ("jr" "Resume" entry (file+olp+datetree org-default-journal-file)
+      "* [%<%H:%M>] Resumed\n"
+      :immediate-finish t)
 
      ("jj" "Jira Journal" entry (file+olp+datetree
                                 org-default-journal-file)
-      "* [%<%H:%M>] Log\n%^{Jira}p\n%?")
+      "* [%<%H:%M>] Log\n%^{PROJECT}p%^{JIRA}p\n%?")
+
+     ("jl" "General Log" entry (file+olp+datetree
+                                org-default-journal-file)
+      "* [%<%H:%M>] Log\n%^{PROJECT}p\n%?")
+
      ("jm" "Meeting Journal "entry (file+olp+datetree
                                    org-default-journal-file)
-      "* [%<%H:%M>] Meeting [%^{Minutes}m]\n%^{Topic}p%?")
+      "* [%<%H:%M>] Meeting [%^{Minutes}m]\n%^{TOPIC}p%^{PROJECT}p%?")
 
      ("b" "Book" entry (file+olp+datetree
                         org-default-books-file)
       "* [%<%H:%M>]
-Book: %^{Book title}p
+Book: %^{Book-title}p
 Pages: %^{first page}-%^{last page}
 Take-aways: %?")
      )
@@ -503,14 +524,47 @@ Take-aways: %?")
 (use-package doc-view
   :hook (doc-view-mode . (lambda () (auto-revert-mode))))
 
+
+;; LSP mode ====================================================================
+
+(use-package lsp-mode
+  :hook
+  (python-mode . lsp)
+  :commands lsp
+  )
+
 ;; Python mode =================================================================
-(setq python-shell-interpreter "ipython"
-      python-shell-interpreter-args "-i --simple-prompt")
+(use-package python
+  :interpreter "ipython"
+  :custom
+  (python-shell-interpreter-args "-i")
+  ;; :hook
+  ;; (python-mode . elpy-enable)
+  :config )
+
+;; (use-package lsp-python-ms
+;;   :ensure t
+;;   :init (setq lsp-python-ms-auto-install-server t)
+;;   :hook (python-mode . (lambda ()
+;;                           (require 'lsp-python-ms)
+;;                           (lsp))))  ; or lsp-deferred
+
+(use-package company-jedi
+  :after python
+  :hook (python-mode . jedi:setup)
+  :config
+  (setq jedi:complete-on-dot nil)
+  (add-to-list 'company-backends 'company-jedi)
+  )
 
 
 (use-package elpy
+  ;; :disabled t
   :ensure t
   :defer t
+  :bind
+  ("M-." . 'elpy-goto-definition)
+  ("M-," . 'elpy-goto-assignment)
   :init
   (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
   (advice-add 'python-mode :before 'elpy-enable))
@@ -587,6 +641,7 @@ Take-aways: %?")
  ;; If there is more than one, they won't work right.
  '(ansi-color-names-vector
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "#d0d0d0"])
+ '(company-idle-delay nil)
  '(custom-enabled-themes '(manoj-dark))
  '(display-buffer-alist
    '(("\\*Help\\*"
@@ -600,8 +655,9 @@ Take-aways: %?")
  '(doc-view-resolution 300)
  '(eldoc-echo-area-prefer-doc-buffer nil)
  '(elpy-formatter 'autopep8)
+ '(elpy-get-info-from-shell t)
  '(elpy-modules
-   '(elpy-module-company elpy-module-eldoc elpy-module-flymake elpy-module-pyvenv elpy-module-yasnippet elpy-module-autodoc elpy-module-sane-defaults))
+   '(elpy-module-company elpy-module-eldoc elpy-module-pyvenv elpy-module-yasnippet elpy-module-autodoc elpy-module-sane-defaults))
  '(elpy-project-root-finder-functions
    '(elpy-project-find-projectile-root elpy-project-find-git-root))
  '(elpy-rpc-python-command
@@ -611,9 +667,14 @@ Take-aways: %?")
    '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/"  "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
  '(fringe-mode 0 nil (fringe))
  '(inhibit-startup-screen t)
+ '(ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")
  '(package-selected-packages
-   '(py-autopep8 olivetti projectile perspective elpy magit god-mode pipenv helm auctex jedi))
+   '(mediawiki helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
+ '(projectile-globally-ignored-directories
+   '("^\\.idea$" "^\\.vscode$" "^\\.ensime_cache$" "^\\.eunit$" "^\\.git$" "^\\.hg$" "^\\.fslckout$" "^_FOSSIL_$" "^\\.bzr$" "^_darcs$" "^\\.pijul$" "^\\.tox$" "^\\.svn$" "^\\.stack-work$" "^\\.ccls-cache$" "^\\.cache$" "^\\.clangd$" "*__pycache__"))
  '(projectile-project-search-path '("~/git/"))
+ '(python-check-command "pyflakes.exe")
+ '(python-skeleton-autoinsert t)
  '(same-window-regexps nil)
  '(show-paren-mode t)
  '(smerge-command-prefix "")
@@ -629,8 +690,10 @@ Take-aways: %?")
  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
  '(cursor ((t (:background "lavender"))))
  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
+ '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
  '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
  '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
+ '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
  '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
  '(font-lock-keyword-face ((t (:foreground "cyan3"))))
  '(font-lock-string-face ((t (:foreground "lavender"))))
@@ -644,3 +707,5 @@ Take-aways: %?")
  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
  '(widget-field ((t (:background "gray15"))))
  '(window-divider ((t (:foreground "black")))))
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'upcase-region 'disabled nil)
