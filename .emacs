@@ -65,6 +65,12 @@ the modeline when toggling god-mode"
 
 (use-package general
   :ensure t
+  :defines
+  sebe/main-leader-key
+  sebe/math-leader-key
+  sebe/edit-leader-key
+  sebe/window-leader-key
+  sebe/projectile-leader-key
   :config
   ;; (setq sebe/keymap (make-sparse-keymap))
   (defconst sebe/main-leader-key "C-.")
@@ -134,6 +140,8 @@ the modeline when toggling god-mode"
   ("<f4>" . 'sebe/projectile-find-or-switch)
   :init (projectile-mode)
   (setq projectile-enable-caching nil)
+  :functions
+  projectile-persp-switch-project
   :config
   (defun sebe/projectile-find-or-switch (switch)
     "Find or switch depending on universal argument"
@@ -166,6 +174,11 @@ the modeline when toggling god-mode"
 
 (use-package helm-gtags
   :defer t
+  :functions
+  helm-gtags-dwim
+  helm-gtags-pop-stack
+  helm-gtags-previous-history
+  helm-gtags-next-history
   :bind
   ("M-." . 'helm-gtags-dwim)
   ("M-," . 'helm-gtags-pop-stack)
