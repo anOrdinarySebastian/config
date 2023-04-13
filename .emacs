@@ -4,8 +4,21 @@
 (add-to-list 'package-archives '("melpa"
                                  . "https://melpa.org/packages/"))
 
+(let ((default-directory  "~/.emacs.d/lisp/"))
+  (normal-top-level-add-to-load-path '("."))
+  (normal-top-level-add-subdirs-to-load-path))
+
 ;; Needed to byte-compile
 (require 'use-package)
+
+(use-package light-mode
+  :ensure nil
+  :load-path "lisp/light-mode/"
+  :defines light-mode-settings)
+
+(use-package smart-mode-line
+  :ensure nil
+  )
 
 (use-package auto-compile
   :ensure t
@@ -23,8 +36,33 @@
   :bind
   ("M-i" . god-mode-all)
   ;; ("<f2>" . sebe/god-mode-insert-at-point)
+  :functions
+  idle-timer-callback-god-mode
+  idle-timer-start-god-mode
+  idle-timer-stop-god-mode
   :init
   (setq god-mode-enable-function-key-translation nil)
+  (setq idle-timer-god-mode-timer nil)
+
+  ;; Callback function
+  (defun idle-timer-callback-god-mode ()
+    (message "god mode is (%s)" (setq god-global-mode t)))
+
+  ;; Start function
+  (defun idle-timer-start-god-mode ()
+    (interactive)
+    (when (timerp idle-timer-god-mode-timer)
+      (cancel-timer idle-timer-god-mode-timer))
+    (setq idle-timer-god-mode-timer
+          (run-with-timer 15 nil #'idle-timer-callback-god-mode)))
+
+  ;; stop function
+  (defun idle-timer-stop-god-mode ()
+    (interactive)
+    (when (timerp idle-timer-god-mode-timer)
+      (cancel-timer idle-timer-god-mode-timer))
+    (setq idle-timer-god-mode-timer nil))
+
   :config
   (defun sebe/god-mode-insert-at-point (comment text)
     "Insert some text without exiting god mode"
@@ -36,6 +74,7 @@
 
   (defun sebe/god-mode-toggle-on-overwrite ()
     "Toggle god-mode on overwrite-mode."
+    (message "Toggle god-mode")
     (if (bound-and-true-p overwrite-mode)
         (god-local-mode-pause)
       (god-local-mode-resume)))
@@ -61,6 +100,7 @@ the modeline when toggling god-mode"
     )
   (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
   (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
+
   )
 
 (use-package general
@@ -131,6 +171,14 @@ the modeline when toggling god-mode"
   :bind ("C-x C-b" . persp-list-buffers)
   :custom (persp-mode-prefix-key (kbd "C-@"))
   :init (persp-mode))
+
+;; Sometime when time is abundant, this could be fixed
+;;
+;; (use-package ibuffer-persp
+;;   :ensure nil
+;;   :after (perspective)
+;;   :load-path "~/git/personal/config/.emacs.d/lisp/ibuffer-persp/ibuffer-persp.el"
+;;   )
 
 (use-package projectile
   :ensure t
@@ -555,14 +603,8 @@ Take-aways: %?")
   ;; (python-mode . elpy-enable)
   :config )
 
-;; (use-package lsp-python-ms
-;;   :ensure t
-;;   :init (setq lsp-python-ms-auto-install-server t)
-;;   :hook (python-mode . (lambda ()
-;;                           (require 'lsp-python-ms)
-;;                           (lsp))))  ; or lsp-deferred
-
 (use-package company-jedi
+  :disabled t
   :after python
   :hook (python-mode . jedi:setup)
   :config
@@ -572,7 +614,7 @@ Take-aways: %?")
 
 
 (use-package elpy
-  ;; :disabled t
+  :disabled t
   :ensure t
   :defer t
   :bind
@@ -628,13 +670,6 @@ Take-aways: %?")
 
 ;; ================= GLOBAL VARIABLES ==========================================
 
-;; Maybe this should just part of the org startup, but it doens't quite fit in
-;; Createing the list
-(setq sebe/current-jira-issues (list))
-;; Adding entry to the list
-(setq sebe/current-jira-issues (cons "A7714-1109"
-                                     sebe/current-jira-issues))
-(add-to-list 'sebe/current-jira-issues "A7750-402")
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
 
