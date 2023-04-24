@@ -11,14 +11,13 @@
 ;; Needed to byte-compile
 (require 'use-package)
 
-(use-package light-mode
-  :ensure nil
-  :load-path "lisp/light-mode/"
-  :defines light-mode-settings)
+(use-package appearance
+  :ensure nil)
+
+(use-package gerrit-getter)
 
 (use-package smart-mode-line
-  :ensure nil
-  )
+  :ensure nil)
 
 (use-package auto-compile
   :ensure t
@@ -112,7 +111,6 @@ the modeline when toggling god-mode"
   sebe/window-leader-key
   sebe/projectile-leader-key
   :config
-  ;; (setq sebe/keymap (make-sparse-keymap))
   (defconst sebe/main-leader-key "C-.")
   (defconst sebe/math-leader-key (concat sebe/main-leader-key " m"))
   (defconst sebe/edit-leader-key (concat sebe/main-leader-key " e"))
@@ -136,6 +134,7 @@ the modeline when toggling god-mode"
    :prefix "C-x"
    "p" 'prev-window
    "O" 'other-frame
+   "C-b" 'persp-ibuffer
    "C-n" (kbd "C-x C-<right>")
    "C-p" (kbd "C-x C-<left>")
    "C-k" 'kill-buffer-and-window)
@@ -168,7 +167,6 @@ the modeline when toggling god-mode"
 
 (use-package perspective
   :ensure t
-  :bind ("C-x C-b" . persp-list-buffers)
   :custom (persp-mode-prefix-key (kbd "C-@"))
   :init (persp-mode))
 
@@ -203,10 +201,13 @@ the modeline when toggling god-mode"
 ;; PATH modifictaions ==========================================================
 ;; Pointing to the right find.exe
 
-(setq find-program "\"c:\\Program Files\\Git\\usr\\bin\\find.exe\"")
+;; FIX THE FIND PROGRAM
+;; (setq find-program "\"c:\\Program
+;; Files\\Git\\usr\\bin\\find.exe\"")
+
+;; FIX BASH
 ;; (setq explicit-shell-file-name "bash")
 ;; (setq shell-file-name explicit-shell-file-name)
-;; (add-to-list 'exec-path "BASH")
 
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
@@ -232,17 +233,15 @@ the modeline when toggling god-mode"
   ("M-," . 'helm-gtags-pop-stack)
   ("C-c <" . 'helm-gtags-previous-history)
   ("C-c >" . 'helm-gtags-next-history)
-  ;; :bind ("C-å" . 'helm-gtags-find-tag)
   :hook
   (c-mode . helm-gtags-mode)
   (c++-mode . helm-gtags-mode)
   (asm-mode . helm-gtags-mode)
-  ;; (python-mode . helm-gtags-mode)
   )
 
 (use-package company
-    ;; :hook
-    ;; (c-mode-hook . company-mode)
+  ;; :hook
+  ;; (c-mode-hook . company-mode)
   ;; (c++-mode-hook . company-mode)
   :bind ("C-M-i" . 'company-complete)
     :config
@@ -267,13 +266,6 @@ the modeline when toggling god-mode"
 ;; On save
 (add-hook 'write-file-functions 'delete-trailing-whitespace)
 
-
-;; could be bad, will not let you save at all, until you correct the error
- ;; (add-hook 'emacs-lisp-mode-hook
- ;;  (lambda ()
- ;;   (add-hook 'write-file-functions
- ;;    'check-parens)))
-
 ;; Long line behaviour
 (set-default 'truncate-lines t)
 
@@ -282,7 +274,44 @@ the modeline when toggling god-mode"
 (scroll-bar-mode -1)
 (menu-bar-mode 0)
 
-;; On startup
+;; line numbers
+(global-display-line-numbers-mode t)
+
+(defcustom display-line-numbers-exempt-modes
+  '(eshell-mode
+    shell-mode
+    ansi-term-mode
+    tex-mode latex-mode
+    org-mode
+    help-mode
+    eww-mode
+    compilation-mode
+    markdown-mode)
+  "Major modes on which to disable line numbers"
+  :require 'display-line-numbers
+  :group 'display-line-numbers
+  :type 'list
+  :version "green")
+
+(defun display-line-numbers--turn-on ()
+  "Turn on line numbers except for certain major modes.
+Exempt major modes are defined in `display-line-numbers-exempt-modes'"
+  (unless (or (minibufferp)
+              (member major-mode display-line-numbers-exempt-modes))
+    (display-line-numbers-mode)))
+
+(global-display-line-numbers-mode)
+
+;; Show lines and column on modeline
+(line-number-mode 1)
+(column-number-mode 1)
+
+;; Display time on mode line
+(setq display-time-24hr-format t)
+(display-time-mode t)
+
+;; Window management =================================================
+
 (defun toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
@@ -308,21 +337,16 @@ the modeline when toggling god-mode"
 	  (select-window first-win)
 	  (if this-win-2nd (other-window 1))))))
 
-;; Nice to have with horizontal screen
-;; (add-hook 'emacs-startup-hook 'toggle-window-split)
-
 (defun prev-window ()
 	(interactive nil)
 	(other-window -1))
-
-;; Window management ===========================================================
 
 ;;(display-buffer-base-action ) ;; Check help for this function
 ;; display-buffer-alist <- customize this to set buffers that should use the same window
 (setq window-min-height 10)
 (setq window-min-width 80)
 
-;; version control helper
+;; version control helper ============================================
 
 (defun revert-all-file-buffers ()
   "Refresh all open file buffers without confirmation.
@@ -361,44 +385,7 @@ will be killed."
     ;;(message "yank %d" i)
     (yank)
     (newline))
-  (yank)
-  )
-
-;; line numbers
-(global-display-line-numbers-mode t)
-
-(defcustom display-line-numbers-exempt-modes
-  '(eshell-mode
-    shell-mode
-    ansi-term-mode
-    tex-mode latex-mode
-    org-mode
-    help-mode
-    eww-mode
-    compilation-mode
-    markdown-mode)
-  "Major modes on which to disable line numbers"
-  :require 'display-line-numbers
-  :group 'display-line-numbers
-  :type 'list
-  :version "green")
-
-(defun display-line-numbers--turn-on ()
-  "Turn on line numbers except for certain major modes.
-Exempt major modes are defined in `display-line-numbers-exempt-modes'"
-  (unless (or (minibufferp)
-              (member major-mode display-line-numbers-exempt-modes))
-    (display-line-numbers-mode)))
-
-(global-display-line-numbers-mode)
-
-;; Show lines and column on modeline
-(line-number-mode 1)
-(column-number-mode 1)
-
-;; Display time on mode line
-(setq display-time-24hr-format t)
-(display-time-mode t)
+  (yank))
 
 ;; Electric pairing (parenthesis, brackets etc)
 (setq electric-pairs '(
@@ -426,6 +413,7 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 (use-package markdown-mode
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
+  :hook (markdown-mode . flyspell-mode)
   :init (setq markdown-command "multimarkdown"))
 
 ;; Olivetti mode ===============================================================
@@ -433,8 +421,8 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
   :ensure t
   :demand t
 ;;  :hook (org-capture-mode)
-  :functions (olivetti-set-width)
-  :config (olivetti-set-width 90)
+  :functions olivetti-set-width
+  :config (olivetti-set-width 80)
   (auto-fill-mode 1)
   )
 
@@ -556,9 +544,7 @@ Take-aways: %?")
   ()
   (visual-line-mode t)
   (turn-on-reftex)
-  (highlight-regexp "\\\\todo\\([swq]\\|.+?}\\)" 'hi-yellow)
-  ;;(add-to-list 'electric-pairs '(?$ . ?$))
-  )
+  (highlight-regexp "\\\\todo\\([swq]\\|.+?}\\)" 'hi-yellow))
 
 (use-package auctex
   :ensure t
@@ -611,7 +597,6 @@ Take-aways: %?")
   (setq jedi:complete-on-dot nil)
   (add-to-list 'company-backends 'company-jedi)
   )
-
 
 (use-package elpy
   :disabled t
