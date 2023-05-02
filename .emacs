@@ -116,6 +116,7 @@ the modeline when toggling god-mode"
   (defconst sebe/edit-leader-key (concat sebe/main-leader-key " e"))
   (defconst sebe/window-leader-key (concat sebe/main-leader-key " w"))
   (defconst sebe/projectile-leader-key (concat sebe/main-leader-key " p"))
+  (defconst sebe/org-leader-key (concat sebe/main-leader-key " o"))
   (general-create-definer sebe/main-leader-definer
     :prefix sebe/main-leader-key)
   (general-create-definer sebe/math-leader-definer
@@ -126,6 +127,8 @@ the modeline when toggling god-mode"
     :prefix sebe/window-leader-key)
   (general-create-definer sebe/projectile-leader-definer
     :prefix sebe/projectile-leader-key)
+    (general-create-definer sebe/org-leader-definer
+    :prefix sebe/org-leader-key)
 
   (general-define-key
    "C-ö" 'replicate-line)
@@ -160,6 +163,9 @@ the modeline when toggling god-mode"
    "f" 'projectile-find-file
    "C-f" 'projectile-persp-switch-project
    "d" 'projectile-find-dir)
+  (sebe/org-leader-definer
+   "s" 'org-store-link
+   )
   )
 
 (use-package project
@@ -202,8 +208,7 @@ the modeline when toggling god-mode"
 ;; Pointing to the right find.exe
 
 ;; FIX THE FIND PROGRAM
-;; (setq find-program "\"c:\\Program
-;; Files\\Git\\usr\\bin\\find.exe\"")
+ (setq find-program "\"c:\\Program Files\\Git\\usr\\bin\\find.exe\"")
 
 ;; FIX BASH
 ;; (setq explicit-shell-file-name "bash")
@@ -231,6 +236,7 @@ the modeline when toggling god-mode"
   :bind
   ("M-." . 'helm-gtags-dwim)
   ("M-," . 'helm-gtags-pop-stack)
+  ("M-å" . 'helm-gtags-select)
   ("C-c <" . 'helm-gtags-previous-history)
   ("C-c >" . 'helm-gtags-next-history)
   :hook
@@ -445,24 +451,17 @@ will be killed."
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
   :init
-  (defun sebe/org-capture-jira-completion ()
-    "Function returning a strig based on the current jira issues described in the
-`sebe/current-jira-issues' list. Hopefully, this can be extended with the option
-of adding new issues too"
-    (interactive)
-    (completing-read "Jira issue: " 'sebe/current-jira-issues ) ;; Look at the info node 21.6.2
-    )
+
   :custom
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
       "* TODO %?\n  %i\n  %a")
 
-     ("n" "Notes" entry (file+function org-default-notes-file sebe/org-capture--notes)
+     ("n" "Notes" entry (file+function org-default-notes-file org-goto)
       "* %?")
-     ;; ("n" "Notes" entry (file+function org-default-notes-file (lambda () (interactive) (format "^\\*\\*%s" (read-string "Desired heading: "))))
-     ;;  "* %?")
 
      ("j" "Journal")
+
      ("js" "Start day" entry (file+olp+datetree
                               org-default-journal-file)
        "* [%<%H:%M>] Started\n\nGoals\n\
@@ -488,11 +487,11 @@ of adding new issues too"
 
      ("jj" "Jira Journal" entry (file+olp+datetree
                                 org-default-journal-file)
-      "* [%<%H:%M>] Log\n%^{PROJECT}p%^{JIRA}p\n%?")
+      "* [%<%H:%M>] Log\n%^{PROJECT}p%^{JIRA}p%?")
 
      ("jl" "General Log" entry (file+olp+datetree
                                 org-default-journal-file)
-      "* [%<%H:%M>] Log\n%^{PROJECT}p\n%?")
+      "* [%<%H:%M>] Log\n%^{PROJECT}p%?")
 
      ("jm" "Meeting Journal "entry (file+olp+datetree
                                    org-default-journal-file)
@@ -517,24 +516,6 @@ Take-aways: %?")
   (setq org-default-todo-file (concat org-directory "/todos.org"))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
   (setq org-default-books-file (concat org-directory "/books.org"))
-
-  (defun sebe/org-capture--notes ()
-    "Function to be used as a capture template for notes
-
-     If the heading exists then the point will be placed there, if not then
-     the argument will be used to create a new heading"
-    (interactive)
-    ;; This call returns a list of all the level two headings in the file
-    ;; The problem with following call in an org file is that after the plain text, there are some font definitions and stuff
-    ;;    which messes up the string -> not a valid input argument
-    ;;(call-interactively sebe/re-seq (rx (= 2 "*") (* blank) (group (* (syntax w)))) (buffer-substring (point-min) (point-max)))
-    (let ((head (read-string "Desiered heading: ")))
-      (unless (re-search-forward
-               (rx (= 2 "*") (* blank)
-                   (group (literal head))) nil t)
-        (goto-char (point-max))
-        (insert (format "** %s" head))))
-    )
   )
 
 ;; Tex mode ====================================================================
@@ -578,6 +559,9 @@ Take-aways: %?")
   :hook
   (python-mode . lsp)
   :commands lsp
+  :bind
+  ("M-." . 'lsp-find-definition)
+  ("M-," . 'lsp-find-references)
   )
 
 ;; Python mode =================================================================
@@ -697,10 +681,12 @@ Take-aways: %?")
    "c:/Users/sebbe/AppData/Local/Programs/Python/Python39/python.exe")
  '(elpy-syntax-check-command "pycodestyle")
  '(exec-path
-   '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/"  "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
+   '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
  '(fringe-mode 0 nil (fringe))
  '(inhibit-startup-screen t)
  '(ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")
+ '(org-goto-interface 'outline-path-completion)
+ '(org-outline-path-complete-in-steps nil)
  '(package-selected-packages
    '(mediawiki helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
  '(projectile-globally-ignored-directories
