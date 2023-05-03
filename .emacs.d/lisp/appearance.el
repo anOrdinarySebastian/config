@@ -22,7 +22,7 @@
  '(default ((t (:inherit nil :extend nil :stipple nil :background "white" :foreground "grey10" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
  '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
- '(cursor ((t (:background "lavender"))))
+ '(cursor ((t (:background "cyan"))))
  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
  '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
  '(font-lock-comment-face ((t (:foreground "grey70" :slant oblique))))
