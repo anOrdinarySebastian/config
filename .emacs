@@ -318,6 +318,25 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 ;; Window management =================================================
 
+(defun identify-viewport-ratio ()
+  "define the way that windows open based on the proportions for the screen
+
+Currently applies to the maximum countable pixels in any given direction,
+meaning two screens give a very large width number"
+  (let ((monitor_attributes (display-monitor-attributes-list))
+        (b))
+    (dolist (elt (elt monitor_attributes 0) b)
+      (let ((list_item (cons elt b)))
+        (print list_item)
+        (print (eq (car list_item) 'frames))
+        (if (eq (caar list_item) 'frames)
+            (let ((ratio (/ (display-pixel-width) (display-pixel-height) 1.0)))
+              (print ratio)
+              ;; (if (> ratio 1)
+              ;;     (message "open to the right")
+              ;;   (message "open bellow"))
+              ))))))
+
 (defun toggle-window-split ()
   (interactive)
   (if (= (count-windows) 2)
