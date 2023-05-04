@@ -325,17 +325,25 @@ Currently applies to the maximum countable pixels in any given direction,
 meaning two screens give a very large width number"
   (let ((monitor_attributes (display-monitor-attributes-list))
         (b))
-    (dolist (elt (elt monitor_attributes 0) b)
-      (let ((list_item (cons elt b)))
-        (print list_item)
-        (print (eq (car list_item) 'frames))
-        (if (eq (caar list_item) 'frames)
-            (let ((ratio (/ (display-pixel-width) (display-pixel-height) 1.0)))
-              (print ratio)
-              ;; (if (> ratio 1)
-              ;;     (message "open to the right")
-              ;;   (message "open bellow"))
-              ))))))
+    (dolist (elt monitor_attributes b)
+      (let ((screen_object (cons elt b)))
+        ;; (print screen_object)
+        (print (elt (car (last (car screen_object))) 1))
+        (print (cadar screen_object))
+        ;; Check if the width (elt 3) is greater than the height (elt 4)
+        (if (and
+             (>
+              (elt (cadar screen_object) 3)
+              (elt (cadar screen_object) 4))
+             (elt (car (last (car screen_object))) 1))
+            ;; Now i just need to set the window opener function
+            ;;(display-buffer-base-action ) ;; Check help for this function
+            ;; Could probably use (display-buffer-in-direction)
+            ;; display-buffer-alist <- customize this to set buffers that should use the same window
+
+            ;; (print (elt (cadar screen_object) 4))
+            (message "It's longer than it is wide")
+          (message "It's wider than it is long"))))))
 
 (defun toggle-window-split ()
   (interactive)
