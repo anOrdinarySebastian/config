@@ -337,13 +337,9 @@ meaning two screens give a very large width number"
               (elt (cadar screen_object) 4))
              (elt (car (last (car screen_object))) 1))
             ;; Now i just need to set the window opener function
-            ;;(display-buffer-base-action ) ;; Check help for this function
-            ;; Could probably use (display-buffer-in-direction)
-            ;; display-buffer-alist <- customize this to set buffers that should use the same window
-
-            ;; (print (elt (cadar screen_object) 4))
-            (message "It's longer than it is wide")
-          (message "It's wider than it is long"))))))
+            ;;(display-buffer-base-action )
+            (setq display-buffer-base-action '((display-buffer-in-side-window) (side . right)))
+          (setq display-buffer-base-action '((display-buffer-in-side-window) (side . bottom))))))))
 
 (defun toggle-window-split ()
   (interactive)
