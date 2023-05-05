@@ -328,8 +328,8 @@ meaning two screens give a very large width number"
     (dolist (elt monitor_attributes b)
       (let ((screen_object (cons elt b)))
         ;; (print screen_object)
-        (print (elt (car (last (car screen_object))) 1))
-        (print (cadar screen_object))
+        ;; (print (elt (car (last (car screen_object))) 1))
+        ;; (print (cadar screen_object))
         ;; Check if the width (elt 3) is greater than the height (elt 4)
         (if (and
              (>
@@ -340,6 +340,8 @@ meaning two screens give a very large width number"
             ;;(display-buffer-base-action )
             (setq display-buffer-base-action '((display-buffer-in-side-window) (side . right)))
           (setq display-buffer-base-action '((display-buffer-in-side-window) (side . bottom))))))))
+
+(add-hook 'window-state-change-hook (identify-viewport-ratio))
 
 (defun toggle-window-split ()
   (interactive)
@@ -687,10 +689,12 @@ Take-aways: %?")
    '(("\\*Help\\*"
       (display-buffer-same-window))
      ("\\*Compilation.*" display-buffer-same-window)
+     ("\\*Grep.*" display-buffer-same-window
+      (nil))
      ("\\*Find.*" display-buffer-same-window)
      ("\\*Customize" display-buffer-same-window)
      ("\\*vc-.*" display-buffer-same-window)))
- '(display-buffer-base-action '((display-buffer-below-selected)))
+ '(display-buffer-base-action '(display-buffer-in-side-window (side . right)))
  '(doc-view-continuous t)
  '(doc-view-resolution 300)
  '(eldoc-echo-area-prefer-doc-buffer nil)
