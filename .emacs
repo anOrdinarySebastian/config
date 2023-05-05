@@ -318,30 +318,23 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 ;; Window management =================================================
 
-(defun identify-viewport-ratio ()
-  "define the way that windows open based on the proportions for the screen
+(defun identify-viewport-ratio (frame)
+  "Set the default way that windows open based on the proportions
+for the screen
 
-Currently applies to the maximum countable pixels in any given direction,
-meaning two screens give a very large width number"
-  (let ((monitor_attributes (display-monitor-attributes-list))
-        (b))
-    (dolist (elt monitor_attributes b)
-      (let ((screen_object (cons elt b)))
-        ;; (print screen_object)
-        ;; (print (elt (car (last (car screen_object))) 1))
-        ;; (print (cadar screen_object))
-        ;; Check if the width (elt 3) is greater than the height (elt 4)
-        (if (and
-             (>
-              (elt (cadar screen_object) 3)
-              (elt (cadar screen_object) 4))
-             (elt (car (last (car screen_object))) 1))
-            ;; Now i just need to set the window opener function
-            ;;(display-buffer-base-action )
-            (setq display-buffer-base-action '((display-buffer-in-side-window) (side . right)))
-          (setq display-buffer-base-action '((display-buffer-in-side-window) (side . bottom))))))))
+If the workarea is wider than it is high, then open to the right,
+else below. Takes the frame to change as argument
+"
+  (let ((screen_object (frame-monitor-workarea frame)))
+    (setq display-buffer-base-action (if (>
+                                          (elt screen_object 2)
+                                          (elt screen_object 3))
+      ;;   (setq display-buffer-base-action '((display-buffer-in-side-window) (side . right)))
+                                         ;; (setq display-buffer-base-action '((display-buffer-in-side-window) (side . bottom)))))))
+                                         '((display-buffer-in-side-window) (side . right))
+                                       '((display-buffer-in-side-window) (side . bottom))))))
 
-(add-hook 'window-state-change-hook (identify-viewport-ratio))
+(add-hook 'window-buffer-change-functions 'identify-viewport-ratio)
 
 (defun toggle-window-split ()
   (interactive)
