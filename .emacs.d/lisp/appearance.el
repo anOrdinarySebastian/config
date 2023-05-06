@@ -39,8 +39,8 @@
  '(mode-line-buffer-id ((t (:inherit mode-line :slant italic :weight bold :height 1.0))))
  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
- '(widget-field ((t (:background "gray15"))))
- '(window-divider ((t (:foreground "black"))))))
+ '(widget-field ((t (:background "white"))))
+ '(window-divider ((t (:foreground "black"))))))x b
 
 (defun appearance-set-dark-mode ()
   "Function for changing settings to light mode"

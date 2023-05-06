@@ -329,8 +329,6 @@ else below. Takes the frame to change as argument
     (setq display-buffer-base-action (if (>
                                           (elt screen_object 2)
                                           (elt screen_object 3))
-      ;;   (setq display-buffer-base-action '((display-buffer-in-side-window) (side . right)))
-                                         ;; (setq display-buffer-base-action '((display-buffer-in-side-window) (side . bottom)))))))
                                          '((display-buffer-in-side-window) (side . right))
                                        '((display-buffer-in-side-window) (side . bottom))))))
 
