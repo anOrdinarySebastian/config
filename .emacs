@@ -508,7 +508,7 @@ will be killed."
 
      ("js" "Start day" entry (file+olp+datetree
                               org-default-journal-file)
-       "* [%<%H:%M>] Started\n\nGoals\n\
+       "* [%<%H:%M>] Started\n\nChecklist\n\
 - [ ] Report time%?\n\
 - [ ] News\n\
 - [ ] Mail\n\
@@ -560,6 +560,8 @@ Take-aways: %?")
   (setq org-default-todo-file (concat org-directory "/todos.org"))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
   (setq org-default-books-file (concat org-directory "/books.org"))
+  (setq org-agenda-files (list org-directory))
+  (setq org-use-speed-commands t)
   )
 
 ;; Tex mode ====================================================================
