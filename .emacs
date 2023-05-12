@@ -89,19 +89,26 @@ the modeline when toggling god-mode"
     (cond
      (god-local-mode
       (set-face-attribute 'mode-line nil
-			                    :foreground "lavender"
-			                    :background "gray10")
+                          :foreground "cadet blue"
+                          :background "black")
       (setq cursor-type 'box))
      (t
       (set-face-attribute 'mode-line nil
-                          :foreground "dark slate gray"
-                          :background "snow")
+                          :foreground "aquamarine"
+                          :background "dark slate gray")
       (setq cursor-type 'bar))
      )
     )
   (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
   (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
 
+  )
+
+(use-package pulsar
+  :custom
+  (pulsar-face 'pulsar-green)
+  :config
+  (pulsar-global-mode)
   )
 
 (use-package general
@@ -736,6 +743,7 @@ Take-aways: %?")
  '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
  '(cursor ((t (:background "lavender"))))
+ '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
  '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
  '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
@@ -752,6 +760,7 @@ Take-aways: %?")
  '(mode-line-buffer-id ((t (:inherit mode-line :slant italic :weight bold :height 1.0))))
  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
+ '(region ((t (:extend t :background "steel blue"))))
  '(widget-field ((t (:background "gray15"))))
  '(window-divider ((t (:foreground "black")))))
 (put 'dired-find-alternate-file 'disabled nil)
