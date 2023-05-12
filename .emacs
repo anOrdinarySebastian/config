@@ -320,21 +320,31 @@ Exempt major modes are defined in `display-line-numbers-exempt-modes'"
 
 ;; Window management =================================================
 
-(defun identify-viewport-ratio (frame)
+(defun setup-display-buffer-base-action (frame)
   "Set the default way that windows open based on the proportions
 for the screen
 
 If the workarea is wider than it is high, then open to the right,
 else below. Takes the frame to change as argument
 "
-  (let ((screen_object (frame-monitor-workarea frame)))
-    (setq display-buffer-base-action (if (>
-                                          (elt screen_object 2)
-                                          (elt screen_object 3))
-                                         '((display-buffer-in-side-window) (side . right))
-                                       '((display-buffer-in-side-window) (side . bottom))))))
+  (let ((current_direction (if (>
+                                (frame-outer-width frame)
+                                (frame-outer-height frame))
+                               (quote right)
+                             (quote bottom))))
+    (setq
+     display-buffer-base-action
+     `((display-buffer-reuse-mode-window
+        display-buffer-reuse-window
+        display-buffer-in-direction)
+       (reusable-frames . t)
+       (mode Info-mode
+             dired-mode
+             compilation-mode
+             help-mode)
+       (direction . ,current_direction)))))
 
-(add-hook 'window-buffer-change-functions 'identify-viewport-ratio)
+(add-hook 'window-size-change-functions 'setup-display-buffer-base-action)
 
 (defun toggle-window-split ()
   (interactive)
@@ -365,8 +375,6 @@ else below. Takes the frame to change as argument
 	(interactive nil)
 	(other-window -1))
 
-;;(display-buffer-base-action ) ;; Check help for this function
-;; display-buffer-alist <- customize this to set buffers that should use the same window
 (setq window-min-height 10)
 (setq window-min-width 80)
 
