@@ -126,6 +126,7 @@ the modeline when toggling god-mode"
   (defconst sebe/window-leader-key (concat sebe/main-leader-key " w"))
   (defconst sebe/projectile-leader-key (concat sebe/main-leader-key " p"))
   (defconst sebe/org-leader-key (concat sebe/main-leader-key " o"))
+  (defconst sebe/helm-leader-key (concat sebe/main-leader-key " h"))
   (general-create-definer sebe/main-leader-definer
     :prefix sebe/main-leader-key)
   (general-create-definer sebe/math-leader-definer
@@ -136,17 +137,22 @@ the modeline when toggling god-mode"
     :prefix sebe/window-leader-key)
   (general-create-definer sebe/projectile-leader-definer
     :prefix sebe/projectile-leader-key)
-    (general-create-definer sebe/org-leader-definer
+  (general-create-definer sebe/org-leader-definer
     :prefix sebe/org-leader-key)
+  (general-create-definer sebe/helm-leader-definer
+    :prefix sebe/helm-leader-key)
 
   (general-define-key
-   "C-ö" 'replicate-line)
+   "C-ö" 'replicate-line
+   "M-x" 'helm-M-x)
 
   (general-define-key
    :prefix "C-x"
    "p" 'prev-window
    "O" 'other-frame
    "C-b" 'persp-ibuffer
+   "b" 'helm-buffers-list
+   "C-f" 'helm-find-files
    "C-n" (kbd "C-x C-<right>")
    "C-p" (kbd "C-x C-<left>")
    "C-k" 'kill-buffer-and-window)
@@ -169,12 +175,17 @@ the modeline when toggling god-mode"
     "f" 'fit-window-to-buffer)
 
   (sebe/projectile-leader-definer
-   "f" 'projectile-find-file
-   "C-f" 'projectile-persp-switch-project
-   "d" 'projectile-find-dir)
+    "f" 'projectile-find-file
+    "C-f" 'projectile-persp-switch-project
+    "d" 'projectile-find-dir)
+
   (sebe/org-leader-definer
-   "s" 'org-store-link
-   )
+    "s" 'org-store-link
+    "a" 'org-agenda)
+
+  (sebe/helm-leader-definer
+    "g" 'helm-grep-do-git-grep
+    "o" 'helm-occur)
   )
 
 (use-package project
@@ -230,9 +241,6 @@ the modeline when toggling god-mode"
   :ensure t
   :config
   (helm-mode 1)
-  :bind
-  ("M-x" . 'helm-M-x)
-  ("C-x C-f" . 'helm-find-files)
   )
 
 (use-package helm-gtags
