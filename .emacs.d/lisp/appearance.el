@@ -40,7 +40,7 @@
  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
  '(widget-field ((t (:background "white"))))
- '(window-divider ((t (:foreground "black"))))))x b
+ '(window-divider ((t (:foreground "black"))))))
 
 (defun appearance-set-dark-mode ()
   "Function for changing settings to light mode"

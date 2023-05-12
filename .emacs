@@ -12,7 +12,9 @@
 (require 'use-package)
 
 (use-package appearance
-  :ensure nil)
+  :ensure nil
+  :bind
+  ("C-M-<f11>" . 'appearance-toggle-mode))
 
 (use-package gerrit-getter)
 
