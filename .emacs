@@ -228,11 +228,11 @@ the modeline when toggling god-mode"
 ;; Pointing to the right find.exe
 
 ;; FIX THE FIND PROGRAM
- (setq find-program "\"c:\\Program Files\\Git\\usr\\bin\\find.exe\"")
-
-;; FIX BASH
-;; (setq explicit-shell-file-name "bash")
-;; (setq shell-file-name explicit-shell-file-name)
+(cond
+ ((string= (system-name) "LT-JRW6NN3")
+  (setq find-program "\"c:\\Program Files\\Git\\usr\\bin\\find.exe\"")
+  (setq explicit-shell-file-name "bash")
+  (setq shell-file-name explicit-shell-file-name)))
 
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
@@ -479,6 +479,9 @@ will be killed."
   :config
   (define-key flyspell-mode-map (kbd "C-M-i") nil)
   (define-key flyspell-mode-map (kbd "C-.") nil)
+  (cond
+   ((string= (system-name) "LT-JRW6NN3")
+    (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")))
   )
 
 (use-package org
@@ -679,6 +682,10 @@ Take-aways: %?")
       matches)))
 
 ;; ================= GLOBAL VARIABLES ==========================================
+
+(cond
+ ((string= (system-name) "LT-JRW6NN3")
+  (setq exec-path '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))))
 
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
