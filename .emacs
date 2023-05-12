@@ -266,13 +266,13 @@ the modeline when toggling god-mode"
   ;; :hook
   ;; (c-mode-hook . company-mode)
   ;; (c++-mode-hook . company-mode)
-  :bind ("C-M-i" . 'company-complete)
-    :config
-    (setq company-backends (delete 'company-semantic company-backends))
-    (global-company-mode 1)
-    (global-set-key (kbd "C-M-i") 'company-complete)
-    (define-key company-mode-map  (kbd "C-M-i") 'company-complete)
-    )
+  :bind ("C-M-i" . 'helm-company)
+  :config
+  (setq company-backends (delete 'company-semantic company-backends))
+  (global-company-mode 1)
+  (global-set-key (kbd "C-M-i") 'company-complete)
+  (define-key company-mode-map  (kbd "C-M-i") 'company-complete)
+  )
 
 (use-package cc-mode
     :config
@@ -604,7 +604,10 @@ Take-aways: %?")
 (use-package lsp-mode
   :hook
   (python-mode . lsp)
-  :commands lsp
+  :commands
+  lsp
+  lsp-find-definition
+  lsp-find-references
   :bind
   ("M-." . 'lsp-find-definition)
   ("M-," . 'lsp-find-references)
@@ -637,7 +640,9 @@ Take-aways: %?")
   ("M-," . 'elpy-goto-assignment)
   :init
   (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
-  (advice-add 'python-mode :before 'elpy-enable))
+  (advice-add 'python-mode :before 'elpy-enable)
+  :config
+  (setq 'elpy-rpc-python-command "c:/Users/sebbe/AppData/Local/Programs/Python/Python39/python.exe"))
 
 (use-package py-autopep8
   :ensure t
