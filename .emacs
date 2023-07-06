@@ -1,4 +1,3 @@
-
 (package-initialize)
 (require 'package)
 (add-to-list 'package-archives '("melpa"
@@ -9,7 +8,38 @@
   (normal-top-level-add-subdirs-to-load-path))
 
 ;; Needed to byte-compile
-(require 'use-package)
+(require 'package)
+
+(use-package dired
+  :ensure nil
+  :bind (:map dired-mode-map
+              ("e" . 'dired-open-in-external-app))
+  :config
+  (defun dired-open-in-external-app (&optional file)
+    "Open the current file or dired marked files in external app.
+
+The app is chosen from your OS's preference."
+    (interactive)
+    (let ( doIt
+           (myFileList
+            (cond
+             ((string-equal major-mode "dired-mode") (dired-get-marked-files))
+             ((not file) (list (buffer-file-name)))
+             (file (list file)))))
+
+      (setq doIt (if (<= (length myFileList) 5)
+                     t
+                   (y-or-n-p "Open more than 5 files? ") ) )
+
+      (when doIt
+        (cond
+         ((string-equal system-type "windows-nt")
+          (mapc (lambda (fPath) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t)) ) myFileList))
+         ((string-equal system-type "darwin")
+          (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)) )  myFileList) )
+         ((string-equal system-type "gnu/linux")
+          (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath)) ) myFileList) ) ) ) ) )
+  )
 
 (use-package appearance
   :ensure nil
@@ -28,6 +58,60 @@
 
 (setq load-prefer-newer t)
 
+(use-package vc-dir
+  :ensure nil
+  :defines
+  vc-fileset
+  vc-dir-mode-map
+  :functions
+  vc-dir-hide-up-to-date
+  vc-dir-refresh
+  :config
+  ;; In vc-git and vc-dir for git buffers, make (C-x v) a run git add, u run git
+  ;; reset, and r run git reset and checkout from head.
+  (defun my-vc-git-command (verb fn)
+    (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
+           (backend (car fileset-arg))
+           (files (nth 1 fileset-arg)))
+      (if (eq backend 'Git)
+          (progn (funcall fn files)
+                 (message (concat verb " " (number-to-string (length files))
+                                  " file(s).")))
+        (message "Not in a vc git buffer."))))
+
+  (defun my-vc-git-add (&optional revision vc-fileset comment)
+    (interactive "P")
+    (my-vc-git-command "Staged" 'vc-git-register))
+
+  (defun my-vc-git-reset (&optional revision vc-fileset comment)
+    (interactive "P")
+    (my-vc-git-command "Unstaged"
+                       (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+
+  (define-key vc-prefix-map [(r)] 'vc-revert-buffer)
+  (define-key vc-dir-mode-map [(r)] 'vc-revert-buffer)
+  (define-key vc-prefix-map [(a)] 'my-vc-git-add)
+  (define-key vc-dir-mode-map [(a)] 'my-vc-git-add)
+  (define-key vc-prefix-map [(u)] 'my-vc-git-reset)
+  (define-key vc-dir-mode-map [(u)] 'my-vc-git-reset)
+
+  ;; hide up to date files after refreshing in vc-dir
+  (define-key vc-dir-mode-map [(g)]
+    (lambda () (interactive) (vc-dir-refresh) (vc-dir-hide-up-to-date))))
+
+(use-package whitespace
+  :ensure nil
+  :custom
+  (whitespace-style '(face
+                      trailing
+                      missing-newline-at-eof
+                      empty
+                      indentation
+                      space-after-tab
+                      space-before-tab))
+  :config
+  (global-whitespace-mode 1))
+
 (use-package god-mode
   :ensure t
   :functions
@@ -119,29 +203,31 @@
   sebe/projectile-leader-key
   :config
   (defconst sebe/main-leader-key "C-.")
-  (defconst sebe/math-leader-key (concat sebe/main-leader-key " m"))
-  (defconst sebe/edit-leader-key (concat sebe/main-leader-key " e"))
-  (defconst sebe/window-leader-key (concat sebe/main-leader-key " w"))
-  (defconst sebe/projectile-leader-key (concat sebe/main-leader-key " p"))
-  (defconst sebe/org-leader-key (concat sebe/main-leader-key " o"))
-  (defconst sebe/helm-leader-key (concat sebe/main-leader-key " h"))
+  (defconst sebe/avy-leader-key "C-ö")
+  (defconst sebe/math-follow-key (concat sebe/main-leader-key " m"))
+  (defconst sebe/edit-follow-key (concat sebe/main-leader-key " e"))
+  (defconst sebe/window-follow-key (concat sebe/main-leader-key " w"))
+  (defconst sebe/projectile-follow-key (concat sebe/main-leader-key " p"))
+  (defconst sebe/org-follow-key (concat sebe/main-leader-key " o"))
+  (defconst sebe/helm-follow-key (concat sebe/main-leader-key " h"))
   (general-create-definer sebe/main-leader-definer
     :prefix sebe/main-leader-key)
-  (general-create-definer sebe/math-leader-definer
-    :prefix sebe/math-leader-key)
-  (general-create-definer sebe/edit-leader-definer
-    :prefix sebe/edit-leader-key)
-  (general-create-definer sebe/window-leader-definer
-    :prefix sebe/window-leader-key)
-  (general-create-definer sebe/projectile-leader-definer
-    :prefix sebe/projectile-leader-key)
-  (general-create-definer sebe/org-leader-definer
-    :prefix sebe/org-leader-key)
-  (general-create-definer sebe/helm-leader-definer
-    :prefix sebe/helm-leader-key)
+  (general-create-definer sebe/avy-leader-definer
+    :prefix sebe/avy-leader-key)
+  (general-create-definer sebe/math-follow-definer
+    :prefix sebe/math-follow-key)
+  (general-create-definer sebe/edit-follow-definer
+    :prefix sebe/edit-follow-key)
+  (general-create-definer sebe/window-follow-definer
+    :prefix sebe/window-follow-key)
+  (general-create-definer sebe/projectile-follow-definer
+    :prefix sebe/projectile-follow-key)
+  (general-create-definer sebe/org-follow-definer
+    :prefix sebe/org-follow-key)
+  (general-create-definer sebe/helm-follow-definer
+    :prefix sebe/helm-follow-key)
 
   (general-define-key
-   "C-ö" 'replicate-line
    "M-x" 'helm-M-x)
 
   (general-define-key
@@ -161,28 +247,49 @@
     "C-f" 'ffap
     "d l" 'kill-whole-line)
 
-  (sebe/math-leader-definer
+  (sebe/avy-leader-definer
+    "C-c" 'avy-goto-char-2
+    "C-w" 'avy-goto-word-1
+    "C-l" 'avy-goto-line
+    "C-y" 'avy-copy-line
+    "C-m" 'avy-move-line
+    )
+
+  (sebe/math-follow-definer
     "+" 'org-increase-number-at-point
     "-" 'org-decrease-number-at-point)
-  (sebe/edit-leader-definer
+
+  (sebe/edit-follow-definer
     "e" (lambda ()
           (interactive)
           (find-file "~/.emacs"))
-    "s" 'flyspell-auto-correct-word)
-  (sebe/window-leader-definer
+    "d" (lambda ()
+          (interactive)
+          (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
+    "s" 'flyspell-auto-correct-word
+    "ö" 'replicate-line
+    )
+
+  (sebe/window-follow-definer
     "s" 'toggle-window-split
     "f" 'fit-window-to-buffer)
 
-  (sebe/projectile-leader-definer
-    "f" 'projectile-find-file
+  (sebe/projectile-follow-definer
+    "s" 'helm-projectile-switch-project
+    "f" 'helm-projectile-find-file
+    "4 f" 'projectile-find-file-other-window
     "C-f" 'projectile-persp-switch-project
-    "d" 'projectile-find-dir)
+    "d" 'projectile-find-dir
+    "4 d" 'projectile-find-dir-other-window
+    "r" 'projectile-dired
+    "4 r" 'projectile-dired-other-window)
 
-  (sebe/org-leader-definer
+  (sebe/org-follow-definer
     "s" 'org-store-link
-    "a" 'org-agenda)
+    "a" 'org-agenda
+    "c" 'org-capture)
 
-  (sebe/helm-leader-definer
+  (sebe/helm-follow-definer
     "g" 'helm-grep-do-git-grep
     "o" 'helm-occur)
   )
@@ -192,7 +299,7 @@
 
 (use-package perspective
   :ensure t
-  :custom (persp-mode-prefix-key (kbd "C-@"))
+  :custom (persp-mode-prefix-key (kbd "C-\""))
   :init (persp-mode))
 
 ;; Sometime when time is abundant, this could be fixed
@@ -205,21 +312,8 @@
 
 (use-package projectile
   :ensure t
-  :functions
-  sebe/projectile-find-or-switch
-  :bind
-  ("<f4>" . 'sebe/projectile-find-or-switch)
-  :init (projectile-mode)
-  (setq projectile-enable-caching t)
-  :functions
-  projectile-persp-switch-project
-  :config
-  (defun sebe/projectile-find-or-switch (switch)
-    "Find or switch depending on universal argument"
-    (interactive "P")
-    (if switch
-        (projectile-persp-switch-project)
-      (projectile-find-file)))
+  :init
+  (projectile-mode)
   )
 
 
@@ -242,6 +336,10 @@
   (helm-mode 1)
   )
 
+(use-package helm-projectile
+  :config
+  (helm-projectile-on))
+
 (use-package helm-gtags
   :defer t
   :functions
@@ -250,11 +348,12 @@
   helm-gtags-previous-history
   helm-gtags-next-history
   :bind
-  ("M-." . 'helm-gtags-dwim)
-  ("M-," . 'helm-gtags-pop-stack)
-  ("M-å" . 'helm-gtags-select)
-  ("C-c <" . 'helm-gtags-previous-history)
-  ("C-c >" . 'helm-gtags-next-history)
+  (:map helm-gtags-mode-map
+        ("M-." . 'helm-gtags-dwim)
+        ("M-," . 'helm-gtags-pop-stack)
+        ("M-å" . 'helm-gtags-select)
+        ("C-c <" . 'helm-gtags-previous-history)
+        ("C-c >" . 'helm-gtags-next-history))
   :hook
   (c-mode . helm-gtags-mode)
   (c++-mode . helm-gtags-mode)
@@ -275,14 +374,15 @@
   :config
   ;; (setq company-backends (delete 'company-semantic company-backends))
   (global-company-mode 1)
-  (global-set-key (kbd "C-M-i") 'company-complete)
-  (define-key company-mode-map  (kbd "C-M-i") 'company-complete)
   )
 
 (use-package cc-mode
-    :config
-    (define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
-    (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
+  :ensure nil
+  :hook
+  (c-mode . (lambda () (c-guess)))
+  :config
+  (define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
+  (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
   )
 
 ;; Indentation
@@ -292,7 +392,7 @@
 (setq tab-stop-list (number-sequence 2 120 2))
 
 ;; On save
-(add-hook 'write-file-functions 'delete-trailing-whitespace)
+;; (add-hook 'write-file-functions 'delete-trailing-whitespace)
 
 ;; Long line behaviour
 (set-default 'truncate-lines t)
@@ -301,6 +401,7 @@
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 (menu-bar-mode 0)
+(display-time-mode 0)
 
 ;; line numbers
 (global-display-line-numbers-mode t)
@@ -474,13 +575,15 @@ will be killed."
   :demand t
 ;;  :hook (org-capture-mode)
   :functions olivetti-set-width
-  :config (olivetti-set-width 80)
+  :config (olivetti-set-width 100)
   (auto-fill-mode 1)
   )
 
 ;; Org mode ====================================================================
 
 (use-package flyspell
+  :hook
+  (vc-git-log-edit-mode . flyspell-mode)
   :config
   (define-key flyspell-mode-map (kbd "C-M-i") nil)
   (define-key flyspell-mode-map (kbd "C-.") nil)
@@ -488,19 +591,19 @@ will be killed."
    ((string= (system-name) "LT-JRW6NN3")
     (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")))
   )
-
+
 (use-package org
   :ensure t
-  :bind
-  ("M-§" . 'org-capture)
+  :defines
+  org-default-todo-file
+  org-default-journal-file
+  org-default-books-file
   :hook
   (org-mode . flyspell-mode)
+  (org-mode . auto-fill-mode)
   (org-capture-mode . olivetti-mode)
-  (org-capture-mode . auto-fill-mode)
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
-  :init
-
   :custom
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
@@ -516,7 +619,7 @@ will be killed."
        "* [%<%H:%M>] Started\n\nChecklist\n\
 - [ ] Report time%?\n\
 - [ ] News\n\
-- [ ] Mail\n\
+- [ ] Mail/Meetings\n\
 - [ ] Jira\n\
 - [ ] Gerrit"
        :clock-in t
@@ -534,7 +637,7 @@ will be killed."
       "* [%<%H:%M>] Resumed\n"
       :immediate-finish t)
 
-     ("jj" "Jira Journal" entry (file+olp+datetree
+     ("jj" "Jira" entry (file+olp+datetree
                                 org-default-journal-file)
       "* [%<%H:%M>] Log\n%^{PROJECT}p%^{JIRA}p%?")
 
@@ -542,7 +645,7 @@ will be killed."
                                 org-default-journal-file)
       "* [%<%H:%M>] Log\n%^{PROJECT}p%?")
 
-     ("jm" "Meeting Journal "entry (file+olp+datetree
+     ("jm" "Meeting "entry (file+olp+datetree
                                    org-default-journal-file)
       "* [%<%H:%M>] Meeting [%^{Minutes}m]\n%^{TOPIC}p%^{PROJECT}p%?")
 
@@ -558,14 +661,25 @@ Take-aways: %?")
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
-     )
+     (shell . t))
    )
   (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
   (setq org-default-todo-file (concat org-directory "/todos.org"))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
   (setq org-default-books-file (concat org-directory "/books.org"))
-  (setq org-agenda-files (list org-directory))
+  (setq org-agenda-files (list org-default-journal-file org-default-notes-file org-default-todo-file))
+  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "DONE")))
+  (setq org-todo-keyword-faces '(("TODO" . org-todo)
+                                 ("IN-PROGRESS". org-in-progress)
+                                 ("DONE" . org-done)))
+  (defface org-in-progress
+    '((((class color) (min-colors 88) (background light))
+       :background "darkseagreen2")
+      (((class color) (min-colors 88) (background dark))
+       :foreground "medium turquoise"))
+    "Face for TODO-tasks tagged with IN-PROGRESS"
+    :group 'org-faces)
   (setq org-use-speed-commands t)
   )
 
@@ -608,14 +722,18 @@ Take-aways: %?")
 
 (use-package lsp-mode
   :hook
-  (python-mode . lsp)
+  (python-mode . lsp-mode)
   :commands
   lsp
   lsp-find-definition
   lsp-find-references
   :bind
-  ("M-." . 'lsp-find-definition)
-  ("M-," . 'lsp-find-references)
+  (:map lsp-mode-map
+        ("M-." . 'lsp-find-definition)
+        ("M-," . 'lsp-find-references))
+  :config
+  (setq lsp-enable-symbol-highlighting nil)
+  (setq lsp-diagnostics-provider :none)
   )
 
 ;; Python mode =================================================================
@@ -623,9 +741,9 @@ Take-aways: %?")
   :interpreter "ipython"
   :custom
   (python-shell-interpreter-args "-i")
-  ;; :hook
-  ;; (python-mode . elpy-enable)
-  :config )
+  :hook
+  (python-mode . yas-minor-mode)
+  :config)
 
 (use-package company-jedi
   :disabled t
@@ -641,8 +759,9 @@ Take-aways: %?")
   :ensure t
   :defer t
   :bind
-  ("M-." . 'elpy-goto-definition)
-  ("M-," . 'elpy-goto-assignment)
+  (:map python-mode-map
+        ("M-." . 'elpy-goto-definition)
+        ("M-," . 'elpy-goto-assignment))
   :init
   (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
   (advice-add 'python-mode :before 'elpy-enable)
@@ -650,11 +769,13 @@ Take-aways: %?")
   (setq 'elpy-rpc-python-command "c:/Users/sebbe/AppData/Local/Programs/Python/Python39/python.exe"))
 
 (use-package py-autopep8
+  :disabled t
   :ensure t
   :defer t
   :hook (elpy-mode . py-autopep8-mode))
 
 (use-package pipenv
+  :disabled t
   :ensure t
   :hook (python-mode . pipenv-mode))
 
@@ -697,7 +818,42 @@ Take-aways: %?")
 
 (cond
  ((string= (system-name) "LT-JRW6NN3")
-  (setq exec-path '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))))
+  (setq exec-path '("c:/Users/sebe/bin"
+                    "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI"
+                    "C:/Program Files (x86)/VMware/VMware Workstation/bin/"
+                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/"
+                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/"
+                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/"
+                    "C:/Emacs/emacs-28.1/bin"
+                    "C:/Program Files (x86)/Plantronics/Spokes3G/"
+                    "C:/Program Files/iperf-3.1.3-win64"
+                    "c:/Program Files/libMultiMarkdown 6.6.0/bin"
+                    "C:/WINDOWS/system32/config/systemprofile/scripts"
+                    "C:/WINDOWS/system32/config/systemprofile/bin"
+                    "C:/Program Files/gs/gs10.00.0/bin"
+                    "C:/Program Files/Git/cmd"
+                    "C:/Program Files/Git/usr/bin"
+                    "C:/WINDOWS/system32"
+                    "C:/WINDOWS"
+                    "C:/WINDOWS/System32/Wbem"
+                    "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin"
+                    "C:/Program Files (x86)/CMake/bin"
+                    "C:/Program Files/Git/mingw64/bin"
+                    "C:/Program Files/nodejs/"
+                    "C:/WINDOWS/System32/WindowsPowerShell/v1.0/"
+                    "C:/Program Files/Microsoft VS Code/bin"
+                    "C:/Program Files/PowerShell/7/"
+                    "C:/Users/sebe/AppData/Local/glo668wb/bin"
+                    "C:/Program Files/doxygen/bin"
+                    "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin"
+                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/"
+                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/"
+                    "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/"
+                    "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps"
+                    "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/"
+                    "C:/Program Files (x86)/Nmap"
+                    "C:/Users/sebe/AppData/Roaming/npm"
+                    "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))))
 
 
 
@@ -1003,8 +1159,14 @@ Read Info node `(elisp) Pixel Specification'.")
       (path-separator . ":")
       (null-device . "/dev/null"))))
  '(custom-enabled-themes '(manoj-dark))
- '(custom-safe-themes
-   '("bce14994e188e3bfc9332457ba8f417e1d1d1aa979edac3746dc2a9ded6fcbac" default))
+ '(dired-listing-switches "-alh")
+ '(display-buffer-alist
+   '(("\\*Help\\*"
+      (display-buffer-same-window))
+     ("\\*Compilation.*" display-buffer-same-window)
+     ("\\*Find.*" display-buffer-same-window)
+     ("\\*Customize" display-buffer-same-window)
+     ("\\*vc-.*" display-buffer-same-window)))
  '(display-buffer-base-action '(display-buffer-in-side-window (side . right)))
  '(doc-view-continuous t)
  '(doc-view-resolution 300)
@@ -1019,7 +1181,7 @@ Read Info node `(elisp) Pixel Specification'.")
    "c:/Users/sebbe/AppData/Local/Programs/Python/Python39/python.exe")
  '(elpy-syntax-check-command "pycodestyle")
  '(exec-path
-   '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
+   '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Program Files/Python/Python310/Scripts/" "C:/Program Files/Python/Python310/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
  '(fringe-mode 0 nil (fringe))
  '(ibuffer-saved-filter-groups '(("no-helm" ("no-helm" (not name . "\\*helm")))))
  '(ibuffer-saved-filters
@@ -1059,15 +1221,25 @@ Read Info node `(elisp) Pixel Specification'.")
  '(inhibit-startup-screen t)
  '(ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")
  '(kill-buffer-delete-auto-save-files t)
+ '(mode-line-format
+   '((:eval display-time-string)
+     "%e" mode-line-front-space mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-auto-compile
+     (vc-mode vc-mode)
+     mode-line-frame-identification mode-line-buffer-identification "   " mode-line-position "  " mode-line-modes mode-line-misc-info mode-line-end-spaces))
  '(org-goto-interface 'outline-path-completion)
  '(org-outline-path-complete-in-steps nil)
  '(package-selected-packages
-   '(avy helm-projectile helm-gtags pulsar mediawiki helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
+   '(helm-projectile avy use-package pulsar helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
  '(projectile-globally-ignored-directories
    '("^\\.idea$" "^\\.vscode$" "^\\.ensime_cache$" "^\\.eunit$" "^\\.git$" "^\\.hg$" "^\\.fslckout$" "^_FOSSIL_$" "^\\.bzr$" "^_darcs$" "^\\.pijul$" "^\\.tox$" "^\\.svn$" "^\\.stack-work$" "^\\.ccls-cache$" "^\\.cache$" "^\\.clangd$" "*__pycache__"))
  '(projectile-project-search-path '("~/git/"))
  '(python-check-command "pyflakes.exe")
  '(python-skeleton-autoinsert t)
+ '(safe-local-variable-values
+   '((org-todo-keywords
+      (sequence "TODO" "IN-PROGRESS" "DONE"))
+     (org-todo-keywords quote
+                        ((sequence "TODO" "IN-PROGRESS" "|" "DONE")))))
  '(same-window-regexps nil)
  '(show-paren-mode t)
  '(smerge-command-prefix "\33")
@@ -1113,3 +1285,29 @@ Read Info node `(elisp) Pixel Specification'.")
  '(mode-line ((t (:foreground "cadet blue" :height 1.0))))
  '(mode-line-active ((t (:inherit mode-line :background "grey15" :box (:line-width (1 . 5) :color "grey15" :style flat-button)))))
  '(mode-line-inactive ((t (:background "grey8" :foreground "grey80" :box (:line-width (2 . 5) :color "grey8" :style flat-button) :weight light :height 1.0)))))
+ '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
+ '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
+ '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
+ '(cursor ((t (:background "lavender"))))
+ '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
+ '(diff-header ((t (:extend t :background "grey90"))))
+ '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
+ '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
+ '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
+ '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
+ '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
+ '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
+ '(font-lock-keyword-face ((t (:foreground "cyan3"))))
+ '(font-lock-string-face ((t (:foreground "lavender"))))
+ '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
+ '(helm-selection ((t (:extend t :distant-foreground "black" :box (:line-width (2 . 2) :color "grey75" :style released-button) :weight bold))))
+ '(helm-source-header ((t (:extend t :background "#22083397778B" :foreground "white" :weight bold :family "Sans Serif"))))
+ '(hi-yellow ((t (:background "orange4" :foreground "black"))))
+ '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
+ '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
+ '(persp-selected-face ((t (:inherit font-lock-constant-face :weight normal))))
+ '(region ((t (:extend t :background "steel blue"))))
+ '(widget-field ((t (:background "gray15"))))
+ '(window-divider ((t (:foreground "black")))))
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'upcase-region 'disabled nil)
