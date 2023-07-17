@@ -10,6 +10,13 @@
 ;; Needed to byte-compile
 (require 'package)
 
+(use-package tramp
+  :config
+  (connection-local-set-profile-variables 'remote-find
+                                          '((find-program . "/usr/bin/find")))
+  (connection-local-set-profiles
+   '(:application tramp :machine "mangoh_vm") 'remote-find))
+
 (use-package dired
   :ensure nil
   :bind (:map dired-mode-map
@@ -204,6 +211,7 @@ The app is chosen from your OS's preference."
   :config
   (defconst sebe/main-leader-key "C-.")
   (defconst sebe/avy-leader-key "C-ö")
+  (defconst sebe/mode-leader-key "C-^")
   (defconst sebe/math-follow-key (concat sebe/main-leader-key " m"))
   (defconst sebe/edit-follow-key (concat sebe/main-leader-key " e"))
   (defconst sebe/window-follow-key (concat sebe/main-leader-key " w"))
@@ -214,6 +222,8 @@ The app is chosen from your OS's preference."
     :prefix sebe/main-leader-key)
   (general-create-definer sebe/avy-leader-definer
     :prefix sebe/avy-leader-key)
+  (general-create-definer sebe/mode-leader-definer
+    :prefix sebe/mode-leader-key)
   (general-create-definer sebe/math-follow-definer
     :prefix sebe/math-follow-key)
   (general-create-definer sebe/edit-follow-definer
@@ -228,7 +238,8 @@ The app is chosen from your OS's preference."
     :prefix sebe/helm-follow-key)
 
   (general-define-key
-   "M-x" 'helm-M-x)
+   "M-x" 'helm-M-x
+   "M-:" 'helm-eval-expression)
 
   (general-define-key
    :prefix "C-x"
@@ -248,50 +259,55 @@ The app is chosen from your OS's preference."
     "d l" 'kill-whole-line)
 
   (sebe/avy-leader-definer
-    "C-c" 'avy-goto-char-2
-    "C-w" 'avy-goto-word-1
-    "C-l" 'avy-goto-line
-    "C-y" 'avy-copy-line
-    "C-m" 'avy-move-line
-    )
+   "C-c" 'avy-goto-char-2
+   "C-w" 'avy-goto-word-1
+   "C-l" 'avy-goto-line
+   "C-y" 'avy-copy-line
+   "C-m" 'avy-move-line
+   )
+
+  (sebe/mode-leader-definer
+   "C-o" 'outline-minor-mode
+   )
 
   (sebe/math-follow-definer
-    "+" 'org-increase-number-at-point
-    "-" 'org-decrease-number-at-point)
+   "+" 'org-increase-number-at-point
+   "-" 'org-decrease-number-at-point)
 
   (sebe/edit-follow-definer
-    "e" (lambda ()
-          (interactive)
-          (find-file "~/.emacs"))
-    "d" (lambda ()
-          (interactive)
-          (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
-    "s" 'flyspell-auto-correct-word
-    "ö" 'replicate-line
-    )
+   "e" (lambda ()
+         (interactive)
+         (find-file "~/.emacs"))
+   "d" (lambda ()
+         (interactive)
+         (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
+   "s" 'flyspell-auto-correct-word
+   "ö" 'replicate-line
+   )
 
   (sebe/window-follow-definer
-    "s" 'toggle-window-split
-    "f" 'fit-window-to-buffer)
+   "s" 'toggle-window-split
+   "f" 'fit-window-to-buffer)
 
   (sebe/projectile-follow-definer
-    "s" 'helm-projectile-switch-project
-    "f" 'helm-projectile-find-file
-    "4 f" 'projectile-find-file-other-window
-    "C-f" 'projectile-persp-switch-project
-    "d" 'projectile-find-dir
-    "4 d" 'projectile-find-dir-other-window
-    "r" 'projectile-dired
-    "4 r" 'projectile-dired-other-window)
+   "s" 'helm-projectile-switch-project
+   "f" 'helm-projectile-find-file
+   "4 f" 'projectile-find-file-other-window
+   "C-f" 'projectile-persp-switch-project
+   "d" 'projectile-find-dir
+   "4 d" 'projectile-find-dir-other-window
+   "r" 'projectile-dired
+   "4 r" 'projectile-dired-other-window
+   "g" 'projectile-vc)
 
   (sebe/org-follow-definer
-    "s" 'org-store-link
-    "a" 'org-agenda
-    "c" 'org-capture)
+   "s" 'org-store-link
+   "a" 'org-agenda
+   "c" 'org-capture)
 
   (sebe/helm-follow-definer
-    "g" 'helm-grep-do-git-grep
-    "o" 'helm-occur)
+   "g" 'helm-grep-do-git-grep
+   "o" 'helm-occur)
   )
 
 (use-package project
@@ -359,8 +375,7 @@ The app is chosen from your OS's preference."
   (c++-mode . helm-gtags-mode)
   (asm-mode . helm-gtags-mode)
   :custom
-  (helm-gtags-auto-update t "This will hopefully do incremental update")
-  )
+  (helm-gtags-auto-update t))
 
 (use-package company
   ;; :hook
@@ -382,8 +397,11 @@ The app is chosen from your OS's preference."
   (c-mode . (lambda () (c-guess)))
   :config
   (define-key c-mode-map  [(tab)] 'c-indent-line-or-region)
-  (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region)
-  )
+  (define-key c++-mode-map  [(tab)] 'c-indent-line-or-region))
+
+(use-package emacs-lisp-mode
+  :hook
+  (emacs-lisp-mode . helm-gtags-mode))
 
 ;; Indentation
 (setq standard-indent 2)
@@ -598,6 +616,7 @@ will be killed."
   org-default-todo-file
   org-default-journal-file
   org-default-books-file
+  org-default-jira-file
   :hook
   (org-mode . flyspell-mode)
   (org-mode . auto-fill-mode)
@@ -612,67 +631,77 @@ will be killed."
      ("n" "Notes" entry (file+function org-default-notes-file org-goto)
       "* %?")
 
+     ("c" "Clocking" plain (clock) "%?" :unnarrowed t)
+
      ("j" "Journal")
 
      ("js" "Start day" entry (file+olp+datetree
                               org-default-journal-file)
-       "* [%<%H:%M>] Started\n\nChecklist\n\
+      "* [%<%H:%M>] Started\n\nChecklist\n\
 - [ ] Report time%?\n\
 - [ ] News\n\
 - [ ] Mail/Meetings\n\
 - [ ] Jira\n\
-- [ ] Gerrit"
-       :clock-in t
-       :clock-keep t)
+- [ ] Gerrit")
 
      ("jq" "Quit day" entry (file+olp+datetree org-default-journal-file)
-      (function (lambda ()
-        (org-clock-out)
-         "* [%<%H:%M>] Quit\n%?"))
-      )
-     ("jp" "Pause" entry (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Paused\n%?")
-
-     ("jr" "Resume" entry (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Resumed\n"
+      "* [%<%H:%M>] Quit\n%?"
       :immediate-finish t)
 
+     ("jp" "Pause" entry (file+olp+datetree org-default-journal-file)
+      "* [%<%H:%M>] Paused\n\
+%?" :clock-in t :clock-keep t)
+
+     ("ja" "Jira" entry (file+function org-default-jira-file
+                      qv                 org-goto)
+      "* %<%y-%m-%d %A>
+:PROPERTIES:
+:COMMIT: %(sebe/print-oneline-git-commit)
+:END:\n%?" :clock-in t :clock-keep t)
+
      ("jj" "Jira" entry (file+olp+datetree
-                                org-default-journal-file)
+                         org-default-journal-file)
       "* [%<%H:%M>] Log\n%^{PROJECT}p%^{JIRA}p%?")
 
      ("jl" "General Log" entry (file+olp+datetree
                                 org-default-journal-file)
       "* [%<%H:%M>] Log\n%^{PROJECT}p%?")
 
-     ("jm" "Meeting "entry (file+olp+datetree
-                                   org-default-journal-file)
+     ("jm" "Meeting " entry (file+olp+datetree
+                             org-default-journal-file)
       "* [%<%H:%M>] Meeting [%^{Minutes}m]\n%^{TOPIC}p%^{PROJECT}p%?")
 
      ("b" "Book" entry (file+olp+datetree
                         org-default-books-file)
       "* [%<%H:%M>]
 Book: %^{Book-title}p
-Pages: %^{first page}-%^{last page}
-Take-aways: %?")
-     )
-   )
+Pages: %^{first page}-%?
+Take-aways: ")))
+  (org-agenda-files (list org-default-journal-file
+                          org-default-notes-file
+                          org-default-todo-file
+                          org-default-jira-file))
+  (org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "DONE")))
+  (org-todo-keyword-faces '(("TODO" . org-todo)
+                            ("IN-PROGRESS". org-in-progress)
+                            ("DONE" . org-done)))
+  (org-use-speed-commands t)
+  (org-clock-continuously t)
   :config
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (shell . t))
-   )
+  (defun sebe/org-capture-commit ()
+    "Docstring"
+    (org-entry-put (point) "JIRA" (sebe/print-oneline-git-commit))
+    "* %?")
   (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
   (setq org-default-todo-file (concat org-directory "/todos.org"))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
   (setq org-default-books-file (concat org-directory "/books.org"))
-  (setq org-agenda-files (list org-default-journal-file org-default-notes-file org-default-todo-file))
-  (setq org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "DONE")))
-  (setq org-todo-keyword-faces '(("TODO" . org-todo)
-                                 ("IN-PROGRESS". org-in-progress)
-                                 ("DONE" . org-done)))
+  (setq org-default-jira-file (concat org-directory "/jira.org"))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (shell . t)))
   (defface org-in-progress
     '((((class color) (min-colors 88) (background light))
        :background "darkseagreen2")
@@ -680,7 +709,7 @@ Take-aways: %?")
        :foreground "medium turquoise"))
     "Face for TODO-tasks tagged with IN-PROGRESS"
     :group 'org-faces)
-  (setq org-use-speed-commands t)
+  (org-clock-auto-clockout-insinuate)
   )
 
 ;; Tex mode ====================================================================
@@ -772,9 +801,7 @@ Take-aways: %?")
   :disabled t
   :ensure t
   :defer t
-  :hook (elpy-mode . py-autopep8-mode))
-
-(use-package pipenv
+  :hook (elpy-mode . py-autopep8-use-package pipenv
   :disabled t
   :ensure t
   :hook (python-mode . pipenv-mode))
@@ -813,6 +840,12 @@ Take-aways: %?")
         (push (match-string 0 string) matches)
         (setq pos (match-end 0)))
       matches)))
+
+(defun sebe/print-oneline-git-commit ()
+    "Function fore returning the current commit hash and short
+                         description"
+    (replace-regexp-in-string "\n\\'" ""
+                              (shell-command-to-string "git log -1 --oneline")))
 
 ;; ================= GLOBAL VARIABLES ==========================================
 
@@ -855,6 +888,7 @@ Take-aways: %?")
                     "C:/Users/sebe/AppData/Roaming/npm"
                     "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))))
 
+(setq enable-remote-dir-locals t)
 
 
 ;; ================= MODELINE MANAGEMENT =======================================
@@ -1060,15 +1094,15 @@ Read Info node `(elisp) Pixel Specification'.")
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
 
+
+(setq sentence-end-double-space nil)
+
 ;; ;; Workaround to make the keyboard work again?! Avoiding dead keys
 ;; (define-key key-translation-map [dead-grave] "`")
 ;; (define-key key-translation-map [dead-acute] "'")
 ;; (define-key key-translation-map [dead-circumflex] "^")
 ;; (define-key key-translation-map [dead-diaeresis] "\"")
 ;; (define-key key-translation-map [dead-tilde] "~")
-
-;; ================= NO TOUCH - EMACS CONFIG ===================================
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -1228,6 +1262,7 @@ Read Info node `(elisp) Pixel Specification'.")
      mode-line-frame-identification mode-line-buffer-identification "   " mode-line-position "  " mode-line-modes mode-line-misc-info mode-line-end-spaces))
  '(org-goto-interface 'outline-path-completion)
  '(org-outline-path-complete-in-steps nil)
+ '(outline-minor-mode-prefix " ")
  '(package-selected-packages
    '(helm-projectile avy use-package pulsar helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
  '(projectile-globally-ignored-directories
@@ -1236,11 +1271,13 @@ Read Info node `(elisp) Pixel Specification'.")
  '(python-check-command "pyflakes.exe")
  '(python-skeleton-autoinsert t)
  '(safe-local-variable-values
-   '((org-todo-keywords
+   '((org-goto-max-level . 2)
+     (org-todo-keywords
       (sequence "TODO" "IN-PROGRESS" "DONE"))
      (org-todo-keywords quote
                         ((sequence "TODO" "IN-PROGRESS" "|" "DONE")))))
  '(same-window-regexps nil)
+ '(scroll-margin 5)
  '(show-paren-mode t)
  '(smerge-command-prefix "\33")
  '(split-height-threshold nil)
@@ -1306,8 +1343,9 @@ Read Info node `(elisp) Pixel Specification'.")
  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
  '(persp-selected-face ((t (:inherit font-lock-constant-face :weight normal))))
- '(region ((t (:extend t :background "steel blue"))))
+ '(region ((t (:extend t :background "grey15"))))
  '(widget-field ((t (:background "gray15"))))
  '(window-divider ((t (:foreground "black")))))
+
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'upcase-region 'disabled nil)
