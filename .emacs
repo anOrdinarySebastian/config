@@ -80,31 +80,29 @@
         (god-local-mode-pause)
       (god-local-mode-resume)))
 
-  ;; (defun sebe/god-mode-update-cursor ()
-  ;;   (setq cursor-type (if (or (god-local-mode buffer-read-only) 'box 'bar))))
-
-  (defun sebe/god-mode-update-mode-line ()
-    "Toggle between differnet colors of both the cursor and
-the modeline when toggling god-mode"
-    (cond
-     (god-local-mode
-      (set-face-attribute 'mode-line nil
-                          :foreground "cadet blue"
-                          :background "black")
-      (setq cursor-type 'box))
-     (t
-      (set-face-attribute 'mode-line nil
-                          :foreground "aquamarine"
-                          :background "dark slate gray")
-      (setq cursor-type 'bar))
-     )
-    )
-  (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
+;;   (defun sebe/god-mode-update-mode-line ()
+;;     "Toggle between differnet colors of both the cursor and
+;; the modeline when toggling god-mode"
+;;     (cond
+;;      (god-local-mode
+      ;; (set-face-attribute 'mode-line nil
+      ;;                     :foreground "cadet blue"
+      ;;                     :background "black")
+;;       (setq cursor-type 'box))
+;;      (t
+;;       (set-face-attribute 'mode-line nil
+;;                           :foreground "aquamarine"
+;;                           :background "dark slate gray")
+;;       (setq cursor-type 'hollow))
+;;      )
+;;     )
+;;   (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
   (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
 
   )
 
 (use-package pulsar
+  :ensure t
   :custom
   (pulsar-face 'pulsar-green)
   :config
@@ -160,6 +158,7 @@ the modeline when toggling god-mode"
   (sebe/main-leader-definer
     "r" 'revert-buffer
     "f" 'fixup-whitespace
+    "C-f" 'ffap
     "d l" 'kill-whole-line)
 
   (sebe/math-leader-definer
@@ -211,7 +210,7 @@ the modeline when toggling god-mode"
   :bind
   ("<f4>" . 'sebe/projectile-find-or-switch)
   :init (projectile-mode)
-  (setq projectile-enable-caching nil)
+  (setq projectile-enable-caching t)
   :functions
   projectile-persp-switch-project
   :config
@@ -260,6 +259,8 @@ the modeline when toggling god-mode"
   (c-mode . helm-gtags-mode)
   (c++-mode . helm-gtags-mode)
   (asm-mode . helm-gtags-mode)
+  :custom
+  (helm-gtags-auto-update t "This will hopefully do incremental update")
   )
 
 (use-package company
@@ -267,8 +268,12 @@ the modeline when toggling god-mode"
   ;; (c-mode-hook . company-mode)
   ;; (c++-mode-hook . company-mode)
   :bind ("C-M-i" . 'helm-company)
+  :defines
+  company-backends
+  :custom
+  (company-backends (delete 'company-semantic company-backends))
   :config
-  (setq company-backends (delete 'company-semantic company-backends))
+  ;; (setq company-backends (delete 'company-semantic company-backends))
   (global-company-mode 1)
   (global-set-key (kbd "C-M-i") 'company-complete)
   (define-key company-mode-map  (kbd "C-M-i") 'company-complete)
@@ -421,7 +426,7 @@ will be killed."
 ;; ====== HOTKEYS ====================================================
 
 (defun replicate-line (&optional number-of-yanks)
-  "Kill a whole line from anywhere in it then yank it 'number of yank' times"
+  "Kill a whole line from anywhere in it then yank it `number-of-yanks' times"
   ;; Getting the arguments in line
   (interactive "^p")
   (or (+ number-of-yanks 1) (setq number-of-yanks 2))
@@ -695,6 +700,208 @@ Take-aways: %?")
   (setq exec-path '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))))
 
 
+
+;; ================= MODELINE MANAGEMENT =======================================
+
+(setq-default mode-line-format
+              '("%e"
+                sen-modeline-remote
+                sen-modeline-modal
+                " "
+                sen-modeline-git-branch
+                sen-modeline-buffer
+                " C%c  "
+                sen-modeline-major-mode
+                " "
+                sen-modeline-perspective
+                prot-modeline-narrow
+                prot-modeline-align-right
+                sen-modeline-org-clock
+                sen-modeline-clock))
+
+(defface sen-modeline-remote-indicator
+  '((default :inherit bold)
+    (t :inherit bold :background "orange3"))
+  "Face for modeline remote indicator."
+  :group 'sen-modeline-faces)
+
+(defface sen-modeline-highlight
+    '((default :inherit bold)
+    (t :inherit bold :background "orange3"))
+  "Face for modeline highlighting."
+  :group 'sen-modeline-faces)
+
+(defface sen-modeline-modal-indicator
+  '((default :inherit bold)
+    (t :inherit bold :background "navy"))
+  "Face for modal mode indicator."
+  :group 'sen-modeline-faces)
+
+(defface sen-modeline-buffer-modified
+  '((t :inherit mode-line-emphasis
+       :foreground "grey90"))
+  "Face for buffer notifying about unsaved changes."
+  :group 'sen-modeline-faces)
+
+(defface sen-modeline-narrow
+  '((t :foreground "white"))
+  "Face for modal mode indicator."
+  :group 'sen-modeline-faces)
+
+(defvar-local sen-modeline-remote
+  '(:eval
+    (when (file-remote-p default-directory)
+      (propertize " @ "
+                  'face 'sen-modeline-remote-indicator)))
+  "Mode line construct to indicate editing remote files")
+
+(defvar-local sen-modeline-buffer
+  '(:eval (propertize (concat (buffer-name) " ")
+                      'face (if (buffer-modified-p)
+                                'sen-modeline-buffer-modified
+                              'mode-line-emphasis))))
+
+(defun sen-modeline-modal-mode ()
+  "Return a special string based on if a `god-local-mode' or
+`view-mode' is active"
+  (cond
+   (god-local-mode " G ")
+   (view-mode " V ")
+   (t "")))
+
+(defvar-local sen-modeline-modal
+  '(:eval
+    (propertize (sen-modeline-modal-mode)
+                'face 'sen-modeline-modal-indicator))
+  "String variable with the current editing mode representation")
+
+(defun sen-modeline-major-mode-name ()
+  "Return capitalized `major-mode' without the -mode suffix."
+  (capitalize (string-replace "-mode" "" (symbol-name major-mode))))
+
+(defvar-local sen-modeline-major-mode
+  '(:eval (sen-modeline-major-mode-name))
+  "Variable containing the representation of the current major mode
+as a string")
+
+(defun sen-modeline-get-git-branch (file)
+  "If applicable, return the git branch of the currently visited file"
+  (let ((git-ref (vc-git--symbolic-ref file)))
+    (if git-ref
+        (concat git-ref ":"))))
+
+(defvar-local sen-modeline-git-branch
+  '(:eval
+    (when (mode-line-window-selected-p)
+      (sen-modeline-get-git-branch (buffer-file-name))))
+  "Variable containing the branch of the currently visited buffer")
+
+(defvar-local sen-modeline-perspective
+  '(:eval
+    (when (mode-line-window-selected-p)
+      (format "[%s]" (persp-current-name)))))
+
+(defvar-local sen-modeline-clock
+  '(:eval
+    (when (mode-line-window-selected-p)
+      (format-time-string "%H:%M"))))
+
+(defvar-local sen-modeline-org-clock
+  '(:eval
+    (when (mode-line-window-selected-p)
+      org-mode-line-string)))
+
+;;;; prot's stuff
+(defvar-local prot-modeline-narrow
+    '(:eval
+      (when (and (mode-line-window-selected-p)
+                 (buffer-narrowed-p)
+                 (not (derived-mode-p 'Info-mode 'help-mode 'special-mode 'message-mode)))
+        (propertize " Narrow " 'face 'sen-modeline-narrow)))
+  "Mode line construct to report the multilingual environment.")
+
+(defun prot-modeline--right-align-rest ()
+  "Return string if everything after `prot-modeline-align-right'."
+  (format-mode-line
+   `(""
+     ,@(cdr (memq 'prot-modeline-align-right mode-line-format)))))
+
+(defun prot-modeline--right-align-width ()
+  "Return pixel width of `prot-modeline--right-align-rest'."
+  (string-pixel-width (prot-modeline--right-align-rest)))
+
+(defun prot-modeline--box-p ()
+  "Return non-nil if the `mode-line' has a box attribute."
+  (and (face-attribute 'mode-line :box)
+       (null (eq (face-attribute 'mode-line :box) 'unspecified))))
+
+;; NOTE 2023-07-13: I could also do what I am doing in
+;; `fontaine--family-list-variable-pitch' and check if the family is a
+;; member of those, but I don't need that as I always inherit
+;; `variable-pitch' in my themes instead of hardcoding the family.
+(defun prot-modeline--variable-pitch-p ()
+  "Return non-nil if the `mode-line' inherits `variable-pitch'."
+  (when-let* ((mode-line-inherit (face-attribute 'mode-line :inherit))
+              ((string-match-p "variable-pitch" (symbol-name mode-line-inherit)))
+              (family-face (face-attribute mode-line-inherit :inherit))
+              (variable-pitch
+               (if (listp family-face)
+                   (memq 'variable-pitch family-face)
+                 (eq 'variable-pitch family-face))))
+    variable-pitch))
+
+;; I just came up with this experimentally, but I am not sure if it is
+;; the best approach.
+(defun prot-modeline--magic-number ()
+  "Return constant for use in `prot-modeline-align-right'."
+  (let ((height (face-attribute 'mode-line :height nil 'default))
+        (m-width (string-pixel-width (propertize "m" 'face 'mode-line))))
+    (round height (* m-width (* height m-width 0.001)))))
+
+(defvar-local prot-modeline-align-right
+    '(:eval
+      (propertize
+       " "
+       'display
+       (let ((box-p (prot-modeline--box-p))
+             (variable-pitch-p (prot-modeline--variable-pitch-p))
+             (magic-number (prot-modeline--magic-number)))
+         `(space
+           :align-to
+           (- right
+              right-fringe
+              right-margin
+              ,(ceiling
+                (prot-modeline--right-align-width)
+                (string-pixel-width (propertize "m" 'face 'mode-line)))
+              ,(cond
+                ;; FIXME 2023-07-13: These hardcoded numbers are
+                ;; probably wrong in some case.  I am still testing.
+                ((and variable-pitch-p box-p)
+                 (* magic-number 0.5))
+                ((and (not variable-pitch-p) box-p)
+                 (* magic-number 0.25))
+                ((and variable-pitch-p (not box-p))
+                 0)
+                ;; No box, no variable pitch, but I am keeping it as
+                ;; the fallback for the time being.
+                (t (* magic-number -0.1))))))))
+  "Mode line construct to align following elements to the right.
+Read Info node `(elisp) Pixel Specification'.")
+
+(dolist (make-var-risky '(sen-modeline-remote
+                          sen-modeline-modal
+                          sen-modeline-buffer
+                          sen-modeline-major-mode
+                          sen-modeline-git-branch
+                          sen-modeline-perspective
+                          prot-modeline-narrow
+                          prot-modeline-align-right
+                          sen-modeline-clock
+                          sen-modeline-org-clock))
+  (put make-var-risky 'risky-local-variable t))
+
+
 ;; ================= SPECIAL PURPOSE FIXES =====================================
 
 ;; ;; Workaround to make the keyboard work again?! Avoiding dead keys
@@ -715,7 +922,89 @@ Take-aways: %?")
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "#d0d0d0"])
  '(auto-save-default nil)
  '(company-idle-delay nil)
+ '(connection-local-criteria-alist
+   '(((:application eshell)
+      eshell-connection-default-profile)
+     ((:application tramp)
+      tramp-connection-local-default-system-profile tramp-connection-local-default-shell-profile)))
+ '(connection-local-profile-alist
+   '((eshell-connection-default-profile
+      (eshell-path-env-list))
+     (tramp-connection-local-darwin-ps-profile
+      (tramp-process-attributes-ps-args "-acxww" "-o" "pid,uid,user,gid,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "state=abcde" "-o" "ppid,pgid,sess,tty,tpgid,minflt,majflt,time,pri,nice,vsz,rss,etime,pcpu,pmem,args")
+      (tramp-process-attributes-ps-format
+       (pid . number)
+       (euid . number)
+       (user . string)
+       (egid . number)
+       (comm . 52)
+       (state . 5)
+       (ppid . number)
+       (pgrp . number)
+       (sess . number)
+       (ttname . string)
+       (tpgid . number)
+       (minflt . number)
+       (majflt . number)
+       (time . tramp-ps-time)
+       (pri . number)
+       (nice . number)
+       (vsize . number)
+       (rss . number)
+       (etime . tramp-ps-time)
+       (pcpu . number)
+       (pmem . number)
+       (args)))
+     (tramp-connection-local-busybox-ps-profile
+      (tramp-process-attributes-ps-args "-o" "pid,user,group,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "stat=abcde" "-o" "ppid,pgid,tty,time,nice,etime,args")
+      (tramp-process-attributes-ps-format
+       (pid . number)
+       (user . string)
+       (group . string)
+       (comm . 52)
+       (state . 5)
+       (ppid . number)
+       (pgrp . number)
+       (ttname . string)
+       (time . tramp-ps-time)
+       (nice . number)
+       (etime . tramp-ps-time)
+       (args)))
+     (tramp-connection-local-bsd-ps-profile
+      (tramp-process-attributes-ps-args "-acxww" "-o" "pid,euid,user,egid,egroup,comm=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" "-o" "state,ppid,pgid,sid,tty,tpgid,minflt,majflt,time,pri,nice,vsz,rss,etimes,pcpu,pmem,args")
+      (tramp-process-attributes-ps-format
+       (pid . number)
+       (euid . number)
+       (user . string)
+       (egid . number)
+       (group . string)
+       (comm . 52)
+       (state . string)
+       (ppid . number)
+       (pgrp . number)
+       (sess . number)
+       (ttname . string)
+       (tpgid . number)
+       (minflt . number)
+       (majflt . number)
+       (time . tramp-ps-time)
+       (pri . number)
+       (nice . number)
+       (vsize . number)
+       (rss . number)
+       (etime . number)
+       (pcpu . number)
+       (pmem . number)
+       (args)))
+     (tramp-connection-local-default-shell-profile
+      (shell-file-name . "/bin/sh")
+      (shell-command-switch . "-c"))
+     (tramp-connection-local-default-system-profile
+      (path-separator . ":")
+      (null-device . "/dev/null"))))
  '(custom-enabled-themes '(manoj-dark))
+ '(custom-safe-themes
+   '("bce14994e188e3bfc9332457ba8f417e1d1d1aa979edac3746dc2a9ded6fcbac" default))
  '(display-buffer-base-action '(display-buffer-in-side-window (side . right)))
  '(doc-view-continuous t)
  '(doc-view-resolution 300)
@@ -773,7 +1062,7 @@ Take-aways: %?")
  '(org-goto-interface 'outline-path-completion)
  '(org-outline-path-complete-in-steps nil)
  '(package-selected-packages
-   '(pulsar mediawiki helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
+   '(avy helm-projectile helm-gtags pulsar mediawiki helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
  '(projectile-globally-ignored-directories
    '("^\\.idea$" "^\\.vscode$" "^\\.ensime_cache$" "^\\.eunit$" "^\\.git$" "^\\.hg$" "^\\.fslckout$" "^_FOSSIL_$" "^\\.bzr$" "^_darcs$" "^\\.pijul$" "^\\.tox$" "^\\.svn$" "^\\.stack-work$" "^\\.ccls-cache$" "^\\.cache$" "^\\.clangd$" "*__pycache__"))
  '(projectile-project-search-path '("~/git/"))
@@ -781,37 +1070,46 @@ Take-aways: %?")
  '(python-skeleton-autoinsert t)
  '(same-window-regexps nil)
  '(show-paren-mode t)
- '(smerge-command-prefix "")
+ '(smerge-command-prefix "\33")
  '(split-height-threshold nil)
  '(split-width-threshold 160))
+;; (custom-set-faces
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
+;;  '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
+;;  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
+;;  '(cursor ((t (:background "lavender"))))
+;;  '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
+;;  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
+;;  '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
+;;  '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
+;;  '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
+;;  '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
+;;  '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
+;;  '(font-lock-keyword-face ((t (:foreground "cyan3"))))
+;;  '(font-lock-string-face ((t (:foreground "lavender"))))
+;;  '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
+;;  '(helm-selection ((t (:extend t :distant-foreground "black" :box (:line-width (2 . 2) :color "grey75" :style released-button) :weight bold))))
+;;  '(helm-source-header ((t (:extend t :background "#22083397778B" :foreground "white" :weight bold :family "Sans Serif"))))
+;;  '(hi-yellow ((t (:background "orange4" :foreground "black"))))
+;;  '(mode-line ((t (:inherit mode-line-buffer-id :background "sky blue" :foreground "Blue" :slant normal :height 0.95))))
+;;  '(mode-line-buffer-id ((t (:inherit mode-line :slant italic :weight bold :height 1.0))))
+;;  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
+;;  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
+;;  '(region ((t (:extend t :background "steel blue"))))
+;;  '(widget-field ((t (:background "gray15"))))
+;;  '(window-divider ((t (:foreground "black")))))
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'upcase-region 'disabled nil)
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
- '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
- '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
- '(cursor ((t (:background "lavender"))))
- '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
- '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
- '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
- '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
- '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
- '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
- '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
- '(font-lock-keyword-face ((t (:foreground "cyan3"))))
- '(font-lock-string-face ((t (:foreground "lavender"))))
- '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
- '(helm-selection ((t (:extend t :distant-foreground "black" :box (:line-width (2 . 2) :color "grey75" :style released-button) :weight bold))))
- '(helm-source-header ((t (:extend t :background "#22083397778B" :foreground "white" :weight bold :family "Sans Serif"))))
- '(hi-yellow ((t (:background "orange4" :foreground "black"))))
- '(mode-line ((t (:inherit mode-line-buffer-id :background "sky blue" :foreground "Blue" :slant normal :height 0.95))))
- '(mode-line-buffer-id ((t (:inherit mode-line :slant italic :weight bold :height 1.0))))
- '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
- '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
- '(region ((t (:extend t :background "steel blue"))))
- '(widget-field ((t (:background "gray15"))))
- '(window-divider ((t (:foreground "black")))))
-(put 'dired-find-alternate-file 'disabled nil)
-(put 'upcase-region 'disabled nil)
+ '(fringe ((t (:inherit default :background "black"))))
+ '(mode-line ((t (:foreground "cadet blue" :height 1.0))))
+ '(mode-line-active ((t (:inherit mode-line :background "grey15" :box (:line-width (1 . 5) :color "grey15" :style flat-button)))))
+ '(mode-line-inactive ((t (:background "grey8" :foreground "grey80" :box (:line-width (2 . 5) :color "grey8" :style flat-button) :weight light :height 1.0)))))
