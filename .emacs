@@ -628,6 +628,10 @@ will be killed."
   org-default-journal-file
   org-default-books-file
   org-default-jira-file
+  :functions
+  sebe/get-prop-ID-from-jira-buf
+  org-property-values
+  org-clock-auto-clockout-insinuate
   :hook
   (org-mode . flyspell-mode)
   (org-mode . auto-fill-mode)
@@ -649,38 +653,41 @@ will be killed."
      ("js" "Start day" entry (file+olp+datetree
                               org-default-journal-file)
       "* [%<%H:%M>] Started\n\nChecklist\n\
-- [ ] Report time%?\n\
+- [ ] Set location%?\n\
+- [ ] Report time\n\
 - [ ] News\n\
 - [ ] Mail/Meetings\n\
+- [ ] Agenda\n\
 - [ ] Jira\n\
-- [ ] Gerrit")
+- [-] Gerrit" :clock-in t :clock-keep t :unnarrowed t)
 
      ("jq" "Quit day" entry (file+olp+datetree org-default-journal-file)
       "* [%<%H:%M>] Quit\n%?"
       :immediate-finish t)
 
      ("jp" "Pause" entry (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Paused\n\
-%?" :clock-in t :clock-keep t)
+      "* [%<%H:%M>] Paused\n%i" :clock-in t :clock-keep t)
 
-     ("ja" "Jira" entry (file+function org-default-jira-file
-                      qv                 org-goto)
-      "* %<%y-%m-%d %A>
+     ("jj" "Work on Jira" entry (file+function org-default-jira-file
+                                               org-goto)
+      "* %<%y-%m-%d %A>\n\n%?" :clock-in t :clock-keep t )
+     ("jJ" "New Jira" entry (file+function org-default-jira-file
+                                           org-goto)
+      "* %^{Jira title}
 :PROPERTIES:
-:COMMIT: %(sebe/print-oneline-git-commit)
-:END:\n%?" :clock-in t :clock-keep t)
-
-     ("jj" "Jira" entry (file+olp+datetree
-                         org-default-journal-file)
-      "* [%<%H:%M>] Log\n%^{PROJECT}p%^{JIRA}p%?")
+:JIRA:  [[https://jira.hms.se/browse/A%^{Jira Number}][A%\2]]
+:ID: %\2
+:END:\n%?")
 
      ("jl" "General Log" entry (file+olp+datetree
                                 org-default-journal-file)
-      "* [%<%H:%M>] Log\n%^{PROJECT}p%?")
+      "* [%<%H:%M>] Log
+%^{PROJECT}p
+%(sebe/org-capture-template-workon-jira)%?")
 
      ("jm" "Meeting " entry (file+olp+datetree
                              org-default-journal-file)
-      "* [%<%H:%M>] Meeting [%^{Minutes}m]\n%^{TOPIC}p%^{PROJECT}p%?")
+      "* [%<%H:%M>][%^{Minutes}m] Meeting%?\n%^{TOPIC}p%^{PROJECT}p")
 
      ("b" "Book" entry (file+olp+datetree
                         org-default-books-file)
@@ -698,17 +705,32 @@ Take-aways: ")))
                             ("DONE" . org-done)))
   (org-use-speed-commands t)
   (org-clock-continuously t)
-  :config
-  (defun sebe/org-capture-commit ()
-    "Docstring"
-    (org-entry-put (point) "JIRA" (sebe/print-oneline-git-commit))
-    "* %?")
+  :init
   (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
   (setq org-default-todo-file (concat org-directory "/todos.org"))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
   (setq org-default-books-file (concat org-directory "/books.org"))
   (setq org-default-jira-file (concat org-directory "/jira.org"))
+
+  :config
+  (defun sebe/get-prop-ID-from-jira-buf ()
+    "Specific funtion for getting the IDs from the jira.org buffer.
+This is for easy linking"
+    (interactive)
+    (let ((buf-name "jira.org"))
+      (if (bufferp (get-buffer buf-name))
+          (with-current-buffer buf-name
+            (org-property-values "ID"))
+        (message "Jira buffer is not open"))))
+  (defun sebe/org-capture-template-workon-jira ()
+    "Function returning a string to be inserted as the template for a
+                        workon jira capture"
+    (let ((jira-id (completing-read "Jira ID: "
+                                    (sebe/get-prop-ID-from-jira-buf))))
+      (if (string= jira-id "")
+          (format "")
+        (format "Working on[[id:%1$s][%1$s]]." jira-id))))
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
@@ -1358,7 +1380,7 @@ Read Info node `(elisp) Pixel Specification'.")
  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
  '(persp-selected-face ((t (:inherit font-lock-constant-face :weight normal))))
- '(region ((t (:extend t :background "grey15"))))
+ '(region ((t (:extend t :background "purple4"))))
  '(widget-field ((t (:background "gray15"))))
  '(window-divider ((t (:foreground "black")))))
 
