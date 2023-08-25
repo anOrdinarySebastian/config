@@ -55,8 +55,9 @@ The app is chosen from your OS's preference."
 
 (use-package gerrit-getter)
 
-(use-package smart-mode-line
-  :ensure nil)
+(use-package whitespace
+  :ensure nil
+  :config (global-whitespace-mode))
 
 (use-package auto-compile
   :ensure t
@@ -109,13 +110,13 @@ The app is chosen from your OS's preference."
 (use-package whitespace
   :ensure nil
   :custom
-  (whitespace-style '(face
-                      trailing
-                      missing-newline-at-eof
-                      empty
-                      indentation
-                      space-after-tab
-                      space-before-tab))
+  (whitespace-style (trailing
+                     missing-newline-at-eof
+                     empty
+                     space-after-tab
+                     space-before-tab::space
+                     space-before-tab
+                     tab-mark))
   :config
   (global-whitespace-mode 1))
 
@@ -206,6 +207,7 @@ The app is chosen from your OS's preference."
   sebe/main-leader-key
   sebe/math-leader-key
   sebe/edit-leader-key
+  sebe/find-file-leader-key
   sebe/window-leader-key
   sebe/projectile-leader-key
   :config
@@ -214,6 +216,7 @@ The app is chosen from your OS's preference."
   (defconst sebe/mode-leader-key "C-^")
   (defconst sebe/math-follow-key (concat sebe/main-leader-key " m"))
   (defconst sebe/edit-follow-key (concat sebe/main-leader-key " e"))
+  (defconst sebe/find-file-follow-key (concat sebe/main-leader-key " f"))
   (defconst sebe/window-follow-key (concat sebe/main-leader-key " w"))
   (defconst sebe/projectile-follow-key (concat sebe/main-leader-key " p"))
   (defconst sebe/org-follow-key (concat sebe/main-leader-key " o"))
@@ -228,6 +231,8 @@ The app is chosen from your OS's preference."
     :prefix sebe/math-follow-key)
   (general-create-definer sebe/edit-follow-definer
     :prefix sebe/edit-follow-key)
+  (general-create-definer sebe/find-file-follow-definer
+    :prefix sebe/find-file-follow-key)
   (general-create-definer sebe/window-follow-definer
     :prefix sebe/window-follow-key)
   (general-create-definer sebe/projectile-follow-definer
@@ -254,7 +259,6 @@ The app is chosen from your OS's preference."
 
   (sebe/main-leader-definer
     "r" 'revert-buffer
-    "f" 'fixup-whitespace
     "C-f" 'ffap
     "d l" 'kill-whole-line)
 
@@ -267,7 +271,8 @@ The app is chosen from your OS's preference."
    )
 
   (sebe/mode-leader-definer
-   "C-o" 'outline-minor-mode
+    "C-o" 'outline-minor-mode
+    "C-v" 'view-mode
    )
 
   (sebe/math-follow-definer
@@ -275,14 +280,18 @@ The app is chosen from your OS's preference."
    "-" 'org-decrease-number-at-point)
 
   (sebe/edit-follow-definer
+   "s" 'flyspell-auto-correct-word
+   "ö" 'replicate-line
+   "w" 'fixup-whitespace
+   )
+
+  (sebe/find-file-follow-definer
    "e" (lambda ()
          (interactive)
          (find-file "~/.emacs"))
    "d" (lambda ()
          (interactive)
          (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
-   "s" 'flyspell-auto-correct-word
-   "ö" 'replicate-line
    )
 
   (sebe/window-follow-definer
@@ -296,6 +305,7 @@ The app is chosen from your OS's preference."
    "C-f" 'projectile-persp-switch-project
    "d" 'projectile-find-dir
    "4 d" 'projectile-find-dir-other-window
+   "C-r" 'helm-projectile-recentf
    "r" 'projectile-dired
    "4 r" 'projectile-dired-other-window
    "g" 'projectile-vc)
@@ -303,7 +313,8 @@ The app is chosen from your OS's preference."
   (sebe/org-follow-definer
    "s" 'org-store-link
    "a" 'org-agenda
-   "c" 'org-capture)
+   "c" 'org-capture
+   "O" 'org-clock-out)
 
   (sebe/helm-follow-definer
    "g" 'helm-grep-do-git-grep
@@ -744,7 +755,9 @@ Take-aways: ")))
 ;; DocView Mode ================================================================
 
 (use-package doc-view
-  :hook (doc-view-mode . (lambda () (auto-revert-mode))))
+  :hook
+  (doc-view-mode . auto-revert-mode)
+  (doc-view-mode . blink-cursor-mode))
 
 
 ;; LSP mode ====================================================================
@@ -801,7 +814,7 @@ Take-aways: ")))
   :disabled t
   :ensure t
   :defer t
-  :hook (elpy-mode . py-autopep8-use-package pipenv
+  :hook (elpy-mode . py-autopep8-mode)
   :disabled t
   :ensure t
   :hook (python-mode . pipenv-mode))
@@ -1328,6 +1341,8 @@ Read Info node `(elisp) Pixel Specification'.")
  '(cursor ((t (:background "lavender"))))
  '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
  '(diff-header ((t (:extend t :background "grey90"))))
+ '(diff-refine-added ((t (:background "dark green" :inherit diff-refine-changed))))
+ '(diff-refine-removed ((t (:inherit diff-refine-changed :background "dark red"))))
  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
  '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
  '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
