@@ -19,6 +19,8 @@
 
 (use-package dired
   :ensure nil
+  :functions
+  dired-open-in-external-app
   :bind (:map dired-mode-map
               ("e" . 'dired-open-in-external-app))
   :config
@@ -50,6 +52,8 @@ The app is chosen from your OS's preference."
 
 (use-package appearance
   :ensure nil
+  :functions
+  appearance-toggle-mode
   :bind
   ("C-M-<f11>" . 'appearance-toggle-mode))
 
@@ -72,6 +76,7 @@ The app is chosen from your OS's preference."
   vc-fileset
   vc-dir-mode-map
   :functions
+  my-vc-git-command
   vc-dir-hide-up-to-date
   vc-dir-refresh
   :config
@@ -210,6 +215,14 @@ The app is chosen from your OS's preference."
   sebe/find-file-leader-key
   sebe/window-leader-key
   sebe/projectile-leader-key
+
+  sebe/math-follow-definer
+  sebe/edit-follow-definer
+  sebe/find-file-follow-definer
+  sebe/window-follow-definer
+  sebe/projectile-follow-definer
+  sebe/helm-follow-definer
+  sebe/org-follow-definer
   :config
   (defconst sebe/main-leader-key "C-.")
   (defconst sebe/avy-leader-key "C-ö")
@@ -395,12 +408,13 @@ The app is chosen from your OS's preference."
   :bind ("C-M-i" . 'helm-company)
   :defines
   company-backends
+  :functions
+  helm-company
   :custom
   (company-backends (delete 'company-semantic company-backends))
   :config
   ;; (setq company-backends (delete 'company-semantic company-backends))
-  (global-company-mode 1)
-  )
+  (global-company-mode 1))
 
 (use-package cc-mode
   :ensure nil
@@ -787,6 +801,9 @@ This is for easy linking"
 (use-package lsp-mode
   :hook
   (python-mode . lsp-mode)
+  :defines
+  lsp-diagnostics-provider
+  lsp-enable-symbol-highlighting
   :commands
   lsp
   lsp-find-definition
@@ -1382,7 +1399,7 @@ Read Info node `(elisp) Pixel Specification'.")
  '(persp-selected-face ((t (:inherit font-lock-constant-face :weight normal))))
  '(region ((t (:extend t :background "purple4"))))
  '(widget-field ((t (:background "gray15"))))
- '(window-divider ((t (:foreground "black")))))
+ '(window-divider ((t (:foreground "black"))))
 
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'upcase-region 'disabled nil)
