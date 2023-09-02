@@ -164,8 +164,7 @@ The app is chosen from your OS's preference."
     (interactive "P\nMText to insert: ")
     (insert text)
     (if comment
-        (comment-line 1))
-    )
+        (comment-line 1)))
 
   (defun sebe/god-mode-toggle-on-overwrite ()
     "Toggle god-mode on overwrite-mode."
@@ -183,8 +182,7 @@ The app is chosen from your OS's preference."
   :custom
   (pulsar-face 'pulsar-green)
   :config
-  (pulsar-global-mode)
-  )
+  (pulsar-global-mode))
 
 (use-package general
   :ensure t
@@ -263,12 +261,11 @@ The app is chosen from your OS's preference."
    "C-l" 'avy-goto-line
    "C-y" 'avy-copy-line
    "C-m" 'avy-move-line
-   )
+   "C-k" 'avy-kill-whole-line)
 
   (sebe/mode-leader-definer
     "C-o" 'outline-minor-mode
-    "C-v" 'view-mode
-   )
+    "C-v" 'view-mode)
 
   (sebe/math-follow-definer
    "+" 'org-increase-number-at-point
@@ -277,8 +274,7 @@ The app is chosen from your OS's preference."
   (sebe/edit-follow-definer
    "s" 'flyspell-auto-correct-word
    "ö" 'replicate-line
-   "w" 'fixup-whitespace
-   )
+   "w" 'fixup-whitespace)
 
   (sebe/find-file-follow-definer
    "e" (lambda ()
@@ -286,8 +282,7 @@ The app is chosen from your OS's preference."
          (find-file "~/.emacs"))
    "d" (lambda ()
          (interactive)
-         (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
-   )
+         (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini")))
 
   (sebe/window-follow-definer
    "s" 'toggle-window-split
@@ -313,8 +308,7 @@ The app is chosen from your OS's preference."
 
   (sebe/helm-follow-definer
    "g" 'helm-grep-do-git-grep
-   "o" 'helm-occur)
-  )
+   "o" 'helm-occur))
 
 (use-package project
   :disabled t)
@@ -352,8 +346,7 @@ The app is chosen from your OS's preference."
 (use-package helm
   :ensure t
   :config
-  (helm-mode 1)
-  )
+  (helm-mode 1))
 
 (use-package helm-projectile
   :config
@@ -552,24 +545,20 @@ will be killed."
   "Kill a whole line from anywhere in it then yank it `number-of-yanks' times"
   ;; Getting the arguments in line
   (interactive "^p")
-  (or (+ number-of-yanks 1) (setq number-of-yanks 2))
 
   ;; Killing a line and yanking it according to arguments
   (kill-whole-line 0)
   (dotimes (i number-of-yanks)
-    ;;(message "yank %d" i)
     (yank)
     (newline))
   (yank))
 
 ;; Electric pairing (parenthesis, brackets etc)
-(setq electric-pairs '(
-(?\( . ?\))
-(?\[ . ?\])
-(?\{ . ?\})
-(?\" . ?\")
-(?\' . ?\')
-))
+(setq electric-pairs '((?\( . ?\))
+                       (?\[ . ?\])
+                       (?\{ . ?\})
+                       (?\" . ?\")
+                       (?\' . ?\')))
 (electric-pair-mode t)
 
 ;; ================= MODE SPECIFICS ============================================
@@ -716,6 +705,7 @@ This is for easy linking"
           (with-current-buffer buf-name
             (org-property-values "ID"))
         (message "Jira buffer is not open"))))
+
   (defun sebe/org-capture-template-workon-jira ()
     "Function returning a string to be inserted as the template for a
                         workon jira capture"
