@@ -125,15 +125,18 @@ The app is chosen from your OS's preference."
   sebe/god-mode-insert-at-point
   sebe/god-mode-update-mode-line-and-cursor
   sebe/god-mode-toggle-on-overwrite
-  :bind
-  ("M-i" . god-mode-all)
-  ;; ("<f2>" . sebe/god-mode-insert-at-point)
-  :functions
   idle-timer-callback-god-mode
   idle-timer-start-god-mode
   idle-timer-stop-god-mode
+  :defines
+  god-mode-alist
+  :bind
+  (:map god-local-mode-map
+        ("z" . #'repeat)
+        ("i" . #'sebe/god-mode-insert-at-point))
+  :custom
+  '(god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
   :init
-  (setq god-mode-enable-function-key-translation nil)
   (setq idle-timer-god-mode-timer nil)
 
   ;; Callback function
@@ -171,26 +174,9 @@ The app is chosen from your OS's preference."
         (god-local-mode-pause)
       (god-local-mode-resume)))
 
-;;   (defun sebe/god-mode-update-mode-line ()
-;;     "Toggle between differnet colors of both the cursor and
-;; the modeline when toggling god-mode"
-;;     (cond
-;;      (god-local-mode
-      ;; (set-face-attribute 'mode-line nil
-      ;;                     :foreground "cadet blue"
-      ;;                     :background "black")
-;;       (setq cursor-type 'box))
-;;      (t
-;;       (set-face-attribute 'mode-line nil
-;;                           :foreground "aquamarine"
-;;                           :background "dark slate gray")
-;;       (setq cursor-type 'hollow))
-;;      )
-;;     )
-;;   (add-hook 'post-command-hook 'sebe/god-mode-update-mode-line)
   (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
-
-  )
+  (setq god-mode-enable-function-key-translation nil)
+  (add-to-list 'god-exempt-major-modes 'diff-mode))
 
 (use-package pulsar
   :ensure t
@@ -251,7 +237,9 @@ The app is chosen from your OS's preference."
 
   (general-define-key
    "M-x" 'helm-M-x
-   "M-:" 'helm-eval-expression)
+   "M-:" 'helm-eval-expression
+   "M-i" 'god-mode-all
+   )
 
   (general-define-key
    :prefix "C-x"
@@ -1260,6 +1248,7 @@ Read Info node `(elisp) Pixel Specification'.")
  '(exec-path
    '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Program Files/Python/Python310/Scripts/" "C:/Program Files/Python/Python310/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
  '(fringe-mode 0 nil (fringe))
+ '(god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
  '(ibuffer-saved-filter-groups '(("no-helm" ("no-helm" (not name . "\\*helm")))))
  '(ibuffer-saved-filters
    '(("programming"
