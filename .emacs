@@ -934,25 +934,9 @@ This is for easy linking"
 
 ;; ================= MODELINE MANAGEMENT =======================================
 
-(setq-default mode-line-format
-              '("%e"
-                sen-modeline-remote
-                sen-modeline-modal
-                " "
-                sen-modeline-git-branch
-                sen-modeline-buffer
-                " C%c  "
-                sen-modeline-major-mode
-                " "
-                sen-modeline-perspective
-                prot-modeline-narrow
-                prot-modeline-align-right
-                sen-modeline-org-clock
-                sen-modeline-clock))
-
 (defface sen-modeline-remote-indicator
   '((default :inherit bold)
-    (t :inherit bold :background "orange3"))
+    (t :inherit bold :background "yellow" :foreground "orange3"))
   "Face for modeline remote indicator."
   :group 'sen-modeline-faces)
 
@@ -964,7 +948,7 @@ This is for easy linking"
 
 (defface sen-modeline-modal-indicator
   '((default :inherit bold)
-    (t :inherit bold :background "navy"))
+    (t :inherit bold :background "deep sky blue" :foreground "navy"))
   "Face for modal mode indicator."
   :group 'sen-modeline-faces)
 
@@ -1024,7 +1008,7 @@ as a string")
 (defvar-local sen-modeline-git-branch
   '(:eval
     (when (mode-line-window-selected-p)
-      (sen-modeline-get-git-branch (buffer-file-name))))
+      (sen-modeline-get-git-branch (buffer-name))))
   "Variable containing the branch of the currently visited buffer")
 
 (defvar-local sen-modeline-perspective
@@ -1087,7 +1071,7 @@ as a string")
   "Return constant for use in `prot-modeline-align-right'."
   (let ((height (face-attribute 'mode-line :height nil 'default))
         (m-width (string-pixel-width (propertize "m" 'face 'mode-line))))
-    (round height (* m-width (* height m-width 0.001)))))
+    (round height (* m-width (* height m-width 0.00035)))))
 
 (defvar-local prot-modeline-align-right
     '(:eval
@@ -1131,6 +1115,22 @@ Read Info node `(elisp) Pixel Specification'.")
                           sen-modeline-clock
                           sen-modeline-org-clock))
   (put make-var-risky 'risky-local-variable t))
+
+(setq-default mode-line-format
+              '("%e"
+                sen-modeline-remote
+                sen-modeline-modal
+                " "
+                sen-modeline-git-branch
+                sen-modeline-buffer
+                " C%c  "
+                sen-modeline-major-mode
+                " "
+                sen-modeline-perspective
+                prot-modeline-narrow
+                prot-modeline-align-right
+                sen-modeline-org-clock
+                sen-modeline-clock))
 
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
