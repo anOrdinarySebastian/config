@@ -53,19 +53,15 @@ The app is chosen from your OS's preference."
 
 (use-package gerrit-getter)
 
-(use-package whitespace
+(use-package vc-git
   :ensure nil
-  :config (global-whitespace-mode))
-
-(use-package auto-compile
-  :ensure t
-  :config (auto-compile-on-load-mode)
-  )
-
-(setq load-prefer-newer t)
+  :demand t
+  :functions
+  vc-git--symbolic-ref)
 
 (use-package vc-dir
   :ensure nil
+  :demand t ;; This is needed as we're using vc in the modeline
   :defines
   vc-fileset
   vc-dir-mode-map
@@ -108,14 +104,6 @@ The app is chosen from your OS's preference."
 
 (use-package whitespace
   :ensure nil
-  :custom
-  (whitespace-style (trailing
-                     missing-newline-at-eof
-                     empty
-                     space-after-tab
-                     space-before-tab::space
-                     space-before-tab
-                     tab-mark))
   :config
   (global-whitespace-mode 1))
 
@@ -318,14 +306,6 @@ The app is chosen from your OS's preference."
   :custom (persp-mode-prefix-key (kbd "C-\""))
   :init (persp-mode))
 
-;; Sometime when time is abundant, this could be fixed
-;;
-;; (use-package ibuffer-persp
-;;   :ensure nil
-;;   :after (perspective)
-;;   :load-path "~/git/personal/config/.emacs.d/lisp/ibuffer-persp/ibuffer-persp.el"
-;;   )
-
 (use-package projectile
   :ensure t
   :init
@@ -374,18 +354,9 @@ The app is chosen from your OS's preference."
   (helm-gtags-auto-update t))
 
 (use-package company
-  ;; :hook
-  ;; (c-mode-hook . company-mode)
-  ;; (c++-mode-hook . company-mode)
-  :bind ("C-M-i" . 'helm-company)
-  :defines
-  company-backends
-  :functions
-  helm-company
-  :custom
-  (company-backends (delete 'company-semantic company-backends))
+  :bind
+  ("C-M-i" . 'helm-company)
   :config
-  ;; (setq company-backends (delete 'company-semantic company-backends))
   (global-company-mode 1))
 
 (use-package cc-mode
@@ -1326,14 +1297,9 @@ Read Info node `(elisp) Pixel Specification'.")
  '(inhibit-startup-screen t)
  '(ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")
  '(kill-buffer-delete-auto-save-files t)
- '(mode-line-format
-   '((:eval display-time-string)
-     "%e" mode-line-front-space mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-auto-compile
-     (vc-mode vc-mode)
-     mode-line-frame-identification mode-line-buffer-identification "   " mode-line-position "  " mode-line-modes mode-line-misc-info mode-line-end-spaces))
  '(org-goto-interface 'outline-path-completion)
  '(org-outline-path-complete-in-steps nil)
- '(outline-minor-mode-prefix " ")
+ '(outline-minor-mode-prefix "\3\0")
  '(package-selected-packages
    '(helm-projectile avy use-package pulsar helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
  '(projectile-globally-ignored-directories
@@ -1352,47 +1318,15 @@ Read Info node `(elisp) Pixel Specification'.")
  '(show-paren-mode t)
  '(smerge-command-prefix "\33")
  '(split-height-threshold nil)
- '(split-width-threshold 160))
-;; (custom-set-faces
-;;  ;; custom-set-faces was added by Custom.
-;;  ;; If you edit it by hand, you could mess it up, so be careful.
-;;  ;; Your init file should contain only one such instance.
-;;  ;; If there is more than one, they won't work right.
-;;  '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
-;;  '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
-;;  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
-;;  '(cursor ((t (:background "lavender"))))
-;;  '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
-;;  '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
-;;  '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
-;;  '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
-;;  '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
-;;  '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
-;;  '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
-;;  '(font-lock-keyword-face ((t (:foreground "cyan3"))))
-;;  '(font-lock-string-face ((t (:foreground "lavender"))))
-;;  '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
-;;  '(helm-selection ((t (:extend t :distant-foreground "black" :box (:line-width (2 . 2) :color "grey75" :style released-button) :weight bold))))
-;;  '(helm-source-header ((t (:extend t :background "#22083397778B" :foreground "white" :weight bold :family "Sans Serif"))))
-;;  '(hi-yellow ((t (:background "orange4" :foreground "black"))))
-;;  '(mode-line ((t (:inherit mode-line-buffer-id :background "sky blue" :foreground "Blue" :slant normal :height 0.95))))
-;;  '(mode-line-buffer-id ((t (:inherit mode-line :slant italic :weight bold :height 1.0))))
-;;  '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
-;;  '(mode-line-inactive ((t (:background "black" :foreground "light blue" :box nil :weight light :height 0.9))))
-;;  '(region ((t (:extend t :background "steel blue"))))
-;;  '(widget-field ((t (:background "gray15"))))
-;;  '(window-divider ((t (:foreground "black")))))
-(put 'dired-find-alternate-file 'disabled nil)
-(put 'upcase-region 'disabled nil)
+ '(split-width-threshold 160)
+ '(whitespace-style
+   '(face trailing missing-newline-at-eof empty space-before-tab::tab space-before-tab tab-mark newline-mark)))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(fringe ((t (:inherit default :background "black"))))
- '(mode-line ((t (:foreground "cadet blue" :height 1.0))))
- '(mode-line-active ((t (:inherit mode-line :background "grey15" :box (:line-width (1 . 5) :color "grey15" :style flat-button)))))
- '(mode-line-inactive ((t (:background "grey8" :foreground "grey80" :box (:line-width (2 . 5) :color "grey8" :style flat-button) :weight light :height 1.0)))))
  '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
  '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
  '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
