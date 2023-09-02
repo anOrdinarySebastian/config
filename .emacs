@@ -605,6 +605,7 @@ will be killed."
 
 (use-package org
   :ensure t
+  :demand t
   :defines
   org-default-todo-file
   org-default-journal-file
@@ -621,62 +622,6 @@ will be killed."
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
   :custom
-  (org-capture-templates
-   '(("t" "Todo" entry (file+headline org-default-todo-file "Tasks")
-      "* TODO %?\n  %i\n  %a")
-
-     ("n" "Notes" entry (file+function org-default-notes-file org-goto)
-      "* %?")
-
-     ("c" "Clocking" plain (clock) "%?" :unnarrowed t)
-
-     ("j" "Journal")
-
-     ("js" "Start day" entry (file+olp+datetree
-                              org-default-journal-file)
-      "* [%<%H:%M>] Started\n\nChecklist\n\
-- [ ] Set location%?\n\
-- [ ] Report time\n\
-- [ ] News\n\
-- [ ] Mail/Meetings\n\
-- [ ] Agenda\n\
-- [ ] Jira\n\
-- [-] Gerrit" :clock-in t :clock-keep t :unnarrowed t)
-
-     ("jq" "Quit day" entry (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Quit\n%?"
-      :immediate-finish t)
-
-     ("jp" "Pause" entry (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Paused\n%i" :clock-in t :clock-keep t)
-
-     ("jj" "Work on Jira" entry (file+function org-default-jira-file
-                                               org-goto)
-      "* %<%y-%m-%d %A>\n\n%?" :clock-in t :clock-keep t )
-     ("jJ" "New Jira" entry (file+function org-default-jira-file
-                                           org-goto)
-      "* %^{Jira title}
-:PROPERTIES:
-:JIRA:  [[https://jira.hms.se/browse/A%^{Jira Number}][A%\2]]
-:ID: %\2
-:END:\n%?")
-
-     ("jl" "General Log" entry (file+olp+datetree
-                                org-default-journal-file)
-      "* [%<%H:%M>] Log
-%^{PROJECT}p
-%(sebe/org-capture-template-workon-jira)%?")
-
-     ("jm" "Meeting " entry (file+olp+datetree
-                             org-default-journal-file)
-      "* [%<%H:%M>][%^{Minutes}m] Meeting%?\n%^{TOPIC}p%^{PROJECT}p")
-
-     ("b" "Book" entry (file+olp+datetree
-                        org-default-books-file)
-      "* [%<%H:%M>]
-Book: %^{Book-title}p
-Pages: %^{first page}-%?
-Take-aways: ")))
   (org-agenda-files (list org-default-journal-file
                           org-default-notes-file
                           org-default-todo-file
@@ -687,6 +632,72 @@ Take-aways: ")))
                             ("DONE" . org-done)))
   (org-use-speed-commands t)
   (org-clock-continuously t)
+  (org-capture-templates
+   '(("t" "Todo"
+      entry
+      (file+headline org-default-todo-file "Tasks")
+      "* TODO %?\n  %i\n  %a")
+
+     ("n" "Notes"
+      entry
+      (file+function org-default-notes-file org-goto)
+      "* %?")
+
+     ("c" "Clocking"
+      plain
+      (clock)
+      "%?"
+      :unnarrowed t)
+
+     ("j" "Journal")
+
+     ("js" "Start day"
+      entry
+      (file+olp+datetree org-default-journal-file)
+      (function start-day-template)
+      :clock-in t
+      :clock-keep t
+      :unnarrowed t)
+
+     ("jq" "Quit day"
+      entry
+      (file+olp+datetree org-default-journal-file)
+      "* [%<%H:%M>] Quit\n%?"
+      :immediate-finish t)
+
+     ("jp" "Pause"
+      entry
+      (file+olp+datetree org-default-journal-file)
+      "* [%<%H:%M>] Paused\n%i"
+      :clock-in t
+      :clock-keep t)
+
+     ("jj" "Work on Jira"
+      entry
+      (file+function org-default-jira-file org-goto)
+      "* %<%y-%m-%d %A>\n\n%?"
+      :clock-in t
+      :clock-keep t)
+
+     ("jJ" "New Jira"
+      entry
+      (file+function org-default-jira-file org-goto)
+      (function new-jira-template))
+
+     ("jl" "General Log"
+      entry
+      (file+olp+datetree org-default-journal-file)
+      (function general-log-template))
+
+     ("jm" "Meeting "
+      entry
+      (file+olp+datetree org-default-journal-file)
+      "* [%<%H:%M>][%^{Minutes}m] Meeting%?\n%^{TOPIC}p%^{PROJECT}p")
+
+     ("b" "Book"
+      entry
+      (file+olp+datetree org-default-books-file)
+      (function book-template))))
   :init
   (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
@@ -694,6 +705,42 @@ Take-aways: ")))
   (setq org-default-journal-file (concat org-directory "/journal.org"))
   (setq org-default-books-file (concat org-directory "/books.org"))
   (setq org-default-jira-file (concat org-directory "/jira.org"))
+
+  ;; Yanky way of writing text return functions for
+  ;; `org-capture-templates' to have a cleaner alist
+  (defun start-day-template () nil
+         "\
+* [%<%H:%M>] Started!
+
+Checklist
+- [ ] Set location%?
+- [ ] Report time
+- [ ] News
+- [ ] Mail/Meetings
+- [ ] Agenda
+- [ ] Jira
+- [-] Gerrit")
+
+  (defun new-jira-template () nil
+         "\
+* %^{Jira title}
+:PROPERTIES:
+:JIRA:  [[https://jira.hms.se/browse/A%^{Jira Number}][A%\\2]]
+:ID: %\\2
+:END:\n%?")
+
+  (defun general-log-template () nil
+         "\
+* [%<%H:%M>] Log
+%^{PROJECT}p
+%(sebe/org-capture-template-workon-jira)%?")
+
+  (defun book-template () nil
+         "\
+* [%<%H:%M>]
+Book: %^{Book-title}p
+Pages: %^{first page}-%?
+Take-aways: ")
 
   :config
   (defun sebe/get-prop-ID-from-jira-buf ()
@@ -713,11 +760,8 @@ This is for easy linking"
                                     (sebe/get-prop-ID-from-jira-buf))))
       (if (string= jira-id "")
           (format "")
-        (format "Working on[[id:%1$s][%1$s]]." jira-id))))
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((python . t)
-     (shell . t)))
+        (format "Working on [[id:%1$s][%1$s]]." jira-id))))
+
   (defface org-in-progress
     '((((class color) (min-colors 88) (background light))
        :background "darkseagreen2")
@@ -725,8 +769,13 @@ This is for easy linking"
        :foreground "medium turquoise"))
     "Face for TODO-tasks tagged with IN-PROGRESS"
     :group 'org-faces)
-  (org-clock-auto-clockout-insinuate)
-  )
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t)
+     (shell . t)))
+
+  (org-clock-auto-clockout-insinuate))
 
 ;; Tex mode ====================================================================
 
