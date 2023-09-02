@@ -7,15 +7,9 @@
   (normal-top-level-add-to-load-path '("."))
   (normal-top-level-add-subdirs-to-load-path))
 
-;; Needed to byte-compile
-(require 'package)
 
 (use-package tramp
-  :config
-  (connection-local-set-profile-variables 'remote-find
-                                          '((find-program . "/usr/bin/find")))
-  (connection-local-set-profiles
-   '(:application tramp :machine "mangoh_vm") 'remote-find))
+  :ensure nil)
 
 (use-package dired
   :ensure nil
@@ -358,12 +352,9 @@ The app is chosen from your OS's preference."
 
 
 ;; PATH modifictaions ==========================================================
-;; Pointing to the right find.exe
 
-;; FIX THE FIND PROGRAM
 (cond
  ((string= (system-name) "LT-JRW6NN3")
-  (setq find-program "\"c:\\Program Files\\Git\\usr\\bin\\find.exe\"")
   (setq explicit-shell-file-name "bash")
   (setq shell-file-name explicit-shell-file-name)))
 
