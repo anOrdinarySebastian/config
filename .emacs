@@ -335,6 +335,25 @@ The app is chosen from your OS's preference."
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
 
+(use-package copilot
+  ;; Repo link https://github.com/zerolfx/copilot.el
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :ensure nil
+  :functions
+  copilot--overlay-visible
+  copilot-accept-completion
+  :config
+  (defun indent-or-copilot ()
+    (interactive)
+    (if (copilot--overlay-visible)
+        (copilot-accept-completion)
+      (indent-for-tab-command)))
+  (general-define-key "TAB" (general-predicate-dispatch 'indent-for-tab-command
+           (copilot--overlay-visible) 'copilot-accept-completion))
+  :hook
+  (c-ts-mode   . copilot-mode)
+  (c++-ts-mode . copilot-mode))
+
 (use-package helm
   :ensure t
   :config
