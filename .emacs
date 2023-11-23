@@ -686,7 +686,7 @@ will be killed."
                             ("IN-PROGRESS". org-in-progress)
                             ("DONE" . org-done)))
   (org-use-speed-commands t)
-  (org-clock-continuously t)
+  (org-clock-continuously nil)
   (org-capture-templates
    '(("t" "Todo"
       entry
@@ -711,7 +711,6 @@ will be killed."
       (file+olp+datetree org-default-journal-file)
       (function start-day-template)
       :clock-in t
-      :clock-keep t
       :unnarrowed t)
 
      ("jq" "Quit day"
@@ -723,7 +722,7 @@ will be killed."
      ("jp" "Pause"
       entry
       (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Paused\n%i"
+      "* [%<%H:%M>] Paused\nGoing for %?"
       :clock-in t
       :clock-keep t)
 
@@ -744,10 +743,17 @@ will be killed."
       (file+olp+datetree org-default-journal-file)
       (function general-log-template))
 
+     ("jL" "General Log, clocked"
+      entry
+      (file+olp+datetree org-default-journal-file)
+      (function general-log-template)
+      :clock-in t
+      :clock-keep t)
+
      ("jm" "Meeting "
       entry
       (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>][%^{Minutes}m] Meeting%?\n%^{TOPIC}p%^{PROJECT}p")
+      "* [%<%H:%M>][%^{Minutes}m] %?meeting\n%^{TOPIC}p%^{PROJECT}p")
 
      ("b" "Book"
       entry
@@ -756,16 +762,28 @@ will be killed."
   :init
   (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
-  (setq org-default-todo-file (concat org-directory "/todos.org"))
-  (setq org-default-journal-file (concat org-directory "/journal.org"))
-  (setq org-default-books-file (concat org-directory "/books.org"))
-  (setq org-default-jira-file (concat org-directory "/jira.org"))
+  (defcustom  org-default-todo-file (concat org-directory "/todos.org")
+    "File where undated TODOs reside"
+    :type '(file :must-match t)
+    :group 'org-capture)
+  (defcustom  org-default-journal-file (concat org-directory "/journal.org")
+    "File to note down what happens during the day"
+    :type '(file :must-match t)
+    :group 'org-capture)
+  (defcustom org-default-books-file (concat org-directory "/books.org")
+    "File to note down thoughts from reading books"
+    :type '(file :must-match t)
+    :group 'org-capture)
+  (defcustom org-default-jira-file (concat org-directory "/jira.org")
+    "File to note down information about specific jira issues"
+    :type '(file :must-match t)
+    :group 'org-capture)
 
   ;; Yanky way of writing text return functions for
   ;; `org-capture-templates' to have a cleaner alist
   (defun start-day-template () nil
          "\
-* [%<%H:%M>] Started!
+* [%<%H:%M>] Started %(make-string 48 ?-)
 
 Checklist
 - [ ] Set location%?
@@ -778,7 +796,7 @@ Checklist
 
   (defun new-jira-template () nil
          "\
-* %^{Jira title}
+* IN-PROGRESS %^{Jira title}
 :PROPERTIES:
 :JIRA:  [[https://jira.hms.se/browse/A%^{Jira Number}][A%\\2]]
 :ID: %\\2
@@ -792,12 +810,16 @@ Checklist
 
   (defun book-template () nil
          "\
-* [%<%H:%M>]
-Book: %^{Book-title}p
-Pages: %^{first page}-%?
-Take-aways: ")
+* [%<%H:%M>]%^{Book-title}p
+Pages: %^{first page}-
+Take-aways: %?")
 
+  (defvar org-electric-pairs '((?/ . ?/) (?= . ?=) (?* . ?*) (?~ . ?~) (?+ . ?+)) "Electric pairs for org-mode.")
   :config
+  (defun org-add-electric-pairs ()
+    (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
+    (setq-local electric-pair-text-pairs electric-pair-pairs))
+
   (defun sebe/get-prop-ID-from-jira-buf ()
     "Specific funtion for getting the IDs from the jira.org buffer.
 This is for easy linking"
