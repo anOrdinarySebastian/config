@@ -50,12 +50,11 @@ The app is chosen from your OS's preference."
       (when doIt
         (cond
          ((string-equal system-type "windows-nt")
-          (mapc (lambda (fPath) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t)) ) myFileList))
+          (mapc (lambda (fPath) (w32-shell-execute "open" (replace-regexp-in-string "/" "\\" fPath t t))) myFileList))
          ((string-equal system-type "darwin")
-          (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)) )  myFileList) )
+          (mapc (lambda (fPath) (shell-command (format "open \"%s\"" fPath)))  myFileList))
          ((string-equal system-type "gnu/linux")
-          (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath)) ) myFileList) ) ) ) ) )
-  )
+          (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath))) myFileList)))))))
 
 (use-package appearance
   :ensure nil
@@ -113,7 +112,7 @@ The app is chosen from your OS's preference."
 
   ;; hide up to date files after refreshing in vc-dir
   (define-key vc-dir-mode-map [(g)]
-    (lambda () (interactive) (vc-dir-refresh) (vc-dir-hide-up-to-date))))
+              (lambda () (interactive) (vc-dir-refresh) (vc-dir-hide-up-to-date))))
 
 (use-package whitespace
   :ensure nil
@@ -354,15 +353,17 @@ The app is chosen from your OS's preference."
   helm-gtags-next-history
   :bind
   (:map helm-gtags-mode-map
-        ("M-." . 'helm-gtags-dwim)
-        ("M-," . 'helm-gtags-pop-stack)
-        ("M-å" . 'helm-gtags-select)
+        ("M-."   . 'helm-gtags-dwim)
+        ("M-,"   . 'helm-gtags-pop-stack)
+        ("M-å"   . 'helm-gtags-select)
         ("C-c <" . 'helm-gtags-previous-history)
         ("C-c >" . 'helm-gtags-next-history))
   :hook
-  (c-mode . helm-gtags-mode)
-  (c++-mode . helm-gtags-mode)
-  (asm-mode . helm-gtags-mode)
+  (c-mode      . helm-gtags-mode)
+  (c-ts-mode   . helm-gtags-mode)
+  (c++-mode    . helm-gtags-mode)
+  (c++-ts-mode . helm-gtags-mode)
+  (asm-mode    . helm-gtags-mode)
   :custom
   (helm-gtags-auto-update t))
 
@@ -470,30 +471,30 @@ else below. Takes the frame to change as argument
   (interactive)
   (if (= (count-windows) 2)
       (let* ((this-win-buffer (window-buffer))
-	     (next-win-buffer (window-buffer (next-window)))
-	     (this-win-edges (window-edges (selected-window)))
-	     (next-win-edges (window-edges (next-window)))
-	     (this-win-2nd (not (and (<= (car this-win-edges)
-					 (car next-win-edges))
-				     (<= (cadr this-win-edges)
-					 (cadr next-win-edges)))))
-	     (splitter
-	      (if (= (car this-win-edges)
-		     (car (window-edges (next-window))))
-		  'split-window-horizontally
-		'split-window-vertically)))
-	(delete-other-windows)
-	(let ((first-win (selected-window)))
-	  (funcall splitter)
-	  (if this-win-2nd (other-window 1))
-	  (set-window-buffer (selected-window) this-win-buffer)
-	  (set-window-buffer (next-window) next-win-buffer)
-	  (select-window first-win)
-	  (if this-win-2nd (other-window 1))))))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
 
 (defun prev-window ()
-	(interactive nil)
-	(other-window -1))
+  (interactive nil)
+  (other-window -1))
 
 (setq window-min-height 10)
 (setq window-min-width 80)
@@ -553,8 +554,7 @@ will be killed."
 (use-package dtrt-indent
   :disabled t
   :ensure nil
-  :config (dtrt-indent-global-mode t)
-  )
+  :config (dtrt-indent-global-mode t))
 
 
 ;; Markdown mode ===============================================================
@@ -568,14 +568,14 @@ will be killed."
 (use-package olivetti
   :ensure t
   :demand t
-;;  :hook (org-capture-mode)
+  ;; :hook (org-capture-mode)
   :functions olivetti-set-width
   :config (olivetti-set-width 100)
-  (auto-fill-mode 1)
-  )
+  (auto-fill-mode 1))
+
 
-;; Org mode ====================================================================
 
+;; Flyspell mode ===============================================================
 (use-package flyspell
   :hook
   (vc-git-log-edit-mode . flyspell-mode)
@@ -584,9 +584,9 @@ will be killed."
   (define-key flyspell-mode-map (kbd "C-.") nil)
   (cond
    ((string= (system-name) "LT-JRW6NN3")
-    (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")))
-  )
+    (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe"))))
 
+;; Org mode ====================================================================
 (use-package org
   :ensure t
   :demand t
@@ -600,11 +600,12 @@ will be killed."
   org-property-values
   org-clock-auto-clockout-insinuate
   :hook
-  (org-mode . flyspell-mode)
-  (org-mode . auto-fill-mode)
+  (org-mode         . flyspell-mode)
+  (org-mode         . auto-fill-mode)
   (org-capture-mode . olivetti-mode)
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
+  (org-mode         . org-add-electric-pairs)
   :custom
   (org-agenda-files (list org-default-journal-file
                           org-default-notes-file
@@ -757,12 +758,11 @@ This is for easy linking"
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
-     (shell . t)))
+     (shell  . t)))
 
   (org-clock-auto-clockout-insinuate))
-
+
 ;; Tex mode ====================================================================
-
 (defun tex-init-addons ()
   "Unnecessary function to start latex in visual line mode"
   ()
@@ -789,20 +789,21 @@ This is for easy linking"
    '("SI" "Number" "Units")
    )
   )
-
+
 ;; DocView Mode ================================================================
-
 (use-package doc-view
   :hook
   (doc-view-mode . auto-revert-mode)
   (doc-view-mode . blink-cursor-mode))
-
-
+
 ;; LSP mode ====================================================================
-
 (use-package lsp-mode
   :hook
   (python-mode . lsp-mode)
+  (c-mode      . lsp-mode)
+  (c-ts-mode   . lsp-mode)
+  (c++-mode    . lsp-mode)
+  (c++-ts-mode . lsp-mode)
   :defines
   lsp-diagnostics-provider
   lsp-enable-symbol-highlighting
@@ -817,73 +818,75 @@ This is for easy linking"
   :config
   (setq lsp-enable-symbol-highlighting nil)
   (setq lsp-diagnostics-provider :none)
-  )
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-tramp-connection "clangd")
+                    :initialization-options "--log=verbose"
+                    :major-modes '(c-ts-mode c-mode c++-ts-mode c++-mode)
+                    :remote? t
+                    :server-id 'clangd-bolt-II)))
 
+(use-package helm-lsp
+  :ensure nil
+  :config
+  (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
+
 ;; Python mode =================================================================
 (use-package python
   :interpreter "ipython"
   :custom
   (python-shell-interpreter-args "-i")
-  :hook
-  (python-mode . yas-minor-mode)
-  :config)
-
-(use-package company-jedi
-  :disabled t
-  :after python
-  :hook (python-mode . jedi:setup)
-  :config
-  (setq jedi:complete-on-dot nil)
-  (add-to-list 'company-backends 'company-jedi)
-  )
-
-(use-package elpy
-  :disabled t
-  :ensure t
-  :defer t
-  :bind
-  (:map python-mode-map
-        ("M-." . 'elpy-goto-definition)
-        ("M-," . 'elpy-goto-assignment))
   :init
-  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
-  (advice-add 'python-mode :before 'elpy-enable)
-  :config
-  (setq 'elpy-rpc-python-command "c:/Users/sebbe/AppData/Local/Programs/Python/Python39/python.exe"))
+  (defcustom python-executable-version "Python38"
+    "The python version that will be used if nothing else is specified"
+    :type '(string)
+    :group 'python))
 
 (use-package py-autopep8
-  :disabled t
-  :ensure t
   :defer t
-  :hook (elpy-mode . py-autopep8-mode)
-  :disabled t
-  :ensure t
+  :hook (python-mode . py-autopep8-mode)
   :hook (python-mode . pipenv-mode))
-
+
+;; Bash mode ==========================================================
+(use-package sh-mode
+  :mode
+  ("\\.bats\\'" . bash-ts-mode)
+  ("\\.sh\\'" . bash-ts-mode))
+
 ;; Matlab/octave mode ==========================================================
-
 (add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
 
+
 ;; Compilation mode ============================================================
 (add-hook 'compilation-mode-hook (lambda()
                                    (visual-line-mode t)))
-
+
+;; YAS mode ====================================================================
+(use-package yasnippet
+  :ensure t
+  :config
+  (yas-global-mode 1))
+
+;; unicode-fonts ===============================================================
+(use-package unicode-fonts
+  :ensure nil
+  :config
+  (unicode-fonts-setup))
+
 ;; ================= GENERAL PURPOSE FUNCTIONS =================================
-
 (defun next-double-window ()
-    (interactive nil)
-        (other-window 2))
+  (interactive nil)
+  (other-window 2))
 
 (defun comment-arrow (&optional endline)
   "Funciton for making an arrow ending at col 80 or col endline"
   (interactive "P")
   (or endline (setq endline 80))
   (let (col_diff '(- endline (current-column)))
-  (if (< col_diff 4)
-      (error "No place for arrow ")
-    (insert comment-start "<")
-    (insert (make-string (- col_diff 3) ?=)))
-  ))
+    (if (< col_diff 4)
+        (error "No place for arrow ")
+      (insert comment-start "<")
+      (insert (make-string (- col_diff 3) ?=)))
+    ))
 
 (defun sebe/re-seq (regexp string)
   "Get a list of all regexp matches in a string"
@@ -896,13 +899,12 @@ This is for easy linking"
       matches)))
 
 (defun sebe/print-oneline-git-commit ()
-    "Function fore returning the current commit hash and short
+  "Function fore returning the current commit hash and short
                          description"
-    (replace-regexp-in-string "\n\\'" ""
-                              (shell-command-to-string "git log -1 --oneline")))
-
+  (replace-regexp-in-string "\n\\'" ""
+                            (shell-command-to-string "git log -1 --oneline")))
+
 ;; ================= GLOBAL VARIABLES ==========================================
-
 (cond
  ((string= (system-name) "LT-JRW6NN3")
   (setq exec-path '("c:/Users/sebe/bin"
@@ -954,7 +956,7 @@ This is for easy linking"
   :group 'sen-modeline-faces)
 
 (defface sen-modeline-highlight
-    '((default :inherit bold)
+  '((default :inherit bold)
     (t :inherit bold :background "orange3"))
   "Face for modeline highlighting."
   :group 'sen-modeline-faces)
@@ -977,17 +979,17 @@ This is for easy linking"
   :group 'sen-modeline-faces)
 
 (defvar-local sen-modeline-remote
-  '(:eval
-    (when (file-remote-p default-directory)
-      (propertize " @ "
-                  'face 'sen-modeline-remote-indicator)))
+    '(:eval
+      (when (file-remote-p default-directory)
+        (propertize " @ "
+                    'face 'sen-modeline-remote-indicator)))
   "Mode line construct to indicate editing remote files")
 
 (defvar-local sen-modeline-buffer
-  '(:eval (propertize (concat (buffer-name) " ")
-                      'face (if (buffer-modified-p)
-                                'sen-modeline-buffer-modified
-                              'mode-line-emphasis))))
+    '(:eval (propertize (concat (buffer-name) " ")
+                        'face (if (buffer-modified-p)
+                                  'sen-modeline-buffer-modified
+                                'mode-line-emphasis))))
 
 (defun sen-modeline-modal-mode ()
   "Return a special string based on if a `god-local-mode' or
@@ -998,9 +1000,9 @@ This is for easy linking"
    (t "")))
 
 (defvar-local sen-modeline-modal
-  '(:eval
-    (propertize (sen-modeline-modal-mode)
-                'face 'sen-modeline-modal-indicator))
+    '(:eval
+      (propertize (sen-modeline-modal-mode)
+                  'face 'sen-modeline-modal-indicator))
   "String variable with the current editing mode representation")
 
 (defun sen-modeline-major-mode-name ()
@@ -1008,7 +1010,7 @@ This is for easy linking"
   (capitalize (string-replace "-mode" "" (symbol-name major-mode))))
 
 (defvar-local sen-modeline-major-mode
-  '(:eval (sen-modeline-major-mode-name))
+    '(:eval (sen-modeline-major-mode-name))
   "Variable containing the representation of the current major mode
 as a string")
 
@@ -1019,25 +1021,25 @@ as a string")
         (concat git-ref ":"))))
 
 (defvar-local sen-modeline-git-branch
-  '(:eval
-    (when (mode-line-window-selected-p)
-      (sen-modeline-get-git-branch (buffer-name))))
+    '(:eval
+      (when (mode-line-window-selected-p)
+        (sen-modeline-get-git-branch (buffer-name))))
   "Variable containing the branch of the currently visited buffer")
 
 (defvar-local sen-modeline-perspective
-  '(:eval
-    (when (mode-line-window-selected-p)
-      (format "[%s]" (persp-current-name)))))
+    '(:eval
+      (when (mode-line-window-selected-p)
+        (format "[%s]" (persp-current-name)))))
 
 (defvar-local sen-modeline-clock
-  '(:eval
-    (when (mode-line-window-selected-p)
-      (format-time-string "%H:%M"))))
+    '(:eval
+      (when (mode-line-window-selected-p)
+        (format-time-string "%H:%M"))))
 
 (defvar-local sen-modeline-org-clock
-  '(:eval
-    (when (mode-line-window-selected-p)
-      org-mode-line-string)))
+    '(:eval
+      (when (mode-line-window-selected-p)
+        org-mode-line-string)))
 
 ;;;; prot's stuff
 (defvar-local prot-modeline-narrow
