@@ -135,7 +135,7 @@ The app is chosen from your OS's preference."
         ("z" . #'repeat)
         ("i" . #'sebe/god-mode-insert-at-point))
   :custom
-  '(god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
+  '(god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-") ("H" . "s-")))
   :init
   (setq idle-timer-god-mode-timer nil)
 
@@ -201,6 +201,8 @@ The app is chosen from your OS's preference."
   sebe/projectile-follow-definer
   sebe/helm-follow-definer
   sebe/org-follow-definer
+  sebe/yas-follow-definer
+  sebe/copilot-follow-definer
   :config
   (defconst sebe/main-leader-key "C-.")
   (defconst sebe/avy-leader-key "C-ö")
@@ -212,12 +214,15 @@ The app is chosen from your OS's preference."
   (defconst sebe/projectile-follow-key (concat sebe/main-leader-key " p"))
   (defconst sebe/org-follow-key (concat sebe/main-leader-key " o"))
   (defconst sebe/helm-follow-key (concat sebe/main-leader-key " h"))
+  (defconst sebe/yas-follow-key (concat sebe/main-leader-key " y"))
+  (defconst sebe/copilot-follow-key (concat sebe/main-leader-key " c"))
   (general-create-definer sebe/main-leader-definer
     :prefix sebe/main-leader-key)
   (general-create-definer sebe/avy-leader-definer
     :prefix sebe/avy-leader-key)
   (general-create-definer sebe/mode-leader-definer
     :prefix sebe/mode-leader-key)
+
   (general-create-definer sebe/math-follow-definer
     :prefix sebe/math-follow-key)
   (general-create-definer sebe/edit-follow-definer
@@ -232,19 +237,23 @@ The app is chosen from your OS's preference."
     :prefix sebe/org-follow-key)
   (general-create-definer sebe/helm-follow-definer
     :prefix sebe/helm-follow-key)
+  (general-create-definer sebe/yas-follow-definer
+    :prefix sebe/yas-follow-key)
+  (general-create-definer sebe/copilot-follow-definer
+    :prefix sebe/copilot-follow-key)
 
   (general-define-key
    "M-x" 'helm-M-x
-   "M-:" 'helm-eval-expression
    "M-i" 'god-mode-all
-   )
+   "C-M-i" 'helm-company
+   "C-M-S-O" 'join-line)
 
   (general-define-key
    :prefix "C-x"
    "p" 'prev-window
    "O" 'other-frame
    "C-b" 'persp-ibuffer
-   "b" 'helm-buffers-list
+   "b" 'helm-mini
    "C-f" 'helm-find-files
    "C-n" (kbd "C-x C-<right>")
    "C-p" (kbd "C-x C-<left>")
@@ -253,76 +262,96 @@ The app is chosen from your OS's preference."
   (sebe/main-leader-definer
     "r" 'revert-buffer
     "C-f" 'ffap
-    "d l" 'kill-whole-line)
+    "d l" 'kill-whole-line
+    "C-d" 'define-it-at-point)
 
   (sebe/avy-leader-definer
-   "C-c" 'avy-goto-char-2
-   "C-w" 'avy-goto-word-1
-   "C-l" 'avy-goto-line
-   "C-y" 'avy-copy-line
-   "C-m" 'avy-move-line
-   "C-k" 'avy-kill-whole-line)
+    "C-c" 'avy-goto-char-2
+    "C-w" 'avy-goto-word-1
+    "C-l" 'avy-goto-line
+    "C-y" 'avy-copy-line
+    "C-m" 'avy-move-line
+    "C-k" 'avy-kill-whole-line)
 
   (sebe/mode-leader-definer
     "C-o" 'outline-minor-mode
     "C-v" 'view-mode)
 
   (sebe/math-follow-definer
-   "+" 'org-increase-number-at-point
-   "-" 'org-decrease-number-at-point)
+    "+" 'org-increase-number-at-point
+    "-" 'org-decrease-number-at-point)
 
   (sebe/edit-follow-definer
-   "s" 'flyspell-auto-correct-word
-   "ö" 'replicate-line
-   "w" 'fixup-whitespace)
+    "s" 'flyspell-auto-correct-word
+    "S" 'ispell-buffer
+    "ö" 'replicate-line
+    "w" 'fixup-whitespace
+    "a" 'align)
 
   (sebe/find-file-follow-definer
-   "e" (lambda ()
-         (interactive)
-         (find-file "~/.emacs"))
-   "d" (lambda ()
-         (interactive)
-         (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini")))
+    "e" (lambda ()
+          (interactive)
+          (find-file "~/.emacs"))
+    "d" (lambda ()
+          (interactive)
+          (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini")))
 
   (sebe/window-follow-definer
-   "s" 'toggle-window-split
-   "f" 'fit-window-to-buffer)
+    "s" 'toggle-window-split
+    "f" 'fit-window-to-buffer)
 
   (sebe/projectile-follow-definer
-   "s" 'helm-projectile-switch-project
-   "f" 'helm-projectile-find-file
-   "4 f" 'projectile-find-file-other-window
-   "C-f" 'projectile-persp-switch-project
-   "d" 'projectile-find-dir
-   "4 d" 'projectile-find-dir-other-window
-   "C-r" 'helm-projectile-recentf
-   "r" 'projectile-dired
-   "4 r" 'projectile-dired-other-window
-   "g" 'projectile-vc)
+    "s" 'helm-projectile-switch-project
+    "f" 'helm-projectile-find-file
+    "4 f" 'projectile-find-file-other-window
+    "C-f" 'projectile-persp-switch-project
+    "d" 'projectile-find-dir
+    "4 d" 'projectile-find-dir-other-window
+    "C-r" 'helm-projectile-recentf
+    "r" 'projectile-dired
+    "4 r" 'projectile-dired-other-window
+    "g" 'projectile-vc
+    "t" 'projectile-test-project
+    "c" 'projectile-compile-project)
 
   (sebe/org-follow-definer
-   "s" 'org-store-link
-   "a" 'org-agenda
-   "c" 'org-capture
-   "O" 'org-clock-out)
+    "s" 'org-store-link
+    "a" (lambda ()
+          (interactive )
+          (org-agenda nil "n"))
+    "A" 'org-agenda
+    "c" 'org-capture
+    "O" 'org-clock-out)
 
   (sebe/helm-follow-definer
-   "g" 'helm-grep-do-git-grep
-   "o" 'helm-occur))
+    "g" 'helm-grep-do-git-grep
+    "o" 'helm-occur)
 
-(use-package project
-  :disabled t)
+  (sebe/yas-follow-definer
+   "n" 'yas-new-snippet
+   "i" 'yas-insert-snippet
+   "v" 'yas-visit-snippet-file)
+
+  (sebe/copilot-follow-definer
+    :keymaps 'copilot-mode-map
+    "c" 'copilot-complete
+    "p"  'copilot-panel-complete
+    "n"  'copilot-next-completion))
 
 (use-package perspective
   :ensure t
   :custom (persp-mode-prefix-key (kbd "C-\""))
   :init (persp-mode))
 
+(use-package project
+  :disabled t)
+
 (use-package projectile
   :ensure t
-  :init
-  (projectile-mode)
-  )
+  :custom
+  (projectile-enable-caching t)
+  :config
+  (projectile-mode 1))
 
 
 ;; PATH modifictaions ==========================================================
@@ -387,13 +416,14 @@ The app is chosen from your OS's preference."
   (helm-gtags-auto-update t))
 
 (use-package company
-  :bind
-  ("C-M-i" . 'helm-company)
   :config
   (global-company-mode 1))
 
 (use-package cc-mode
   :ensure nil
+  :config
+  (general-define-key "TAB" (general-predicate-dispatch 'c-indent-line-or-region
+                              (copilot--overlay-visible) 'copilot-accept-completion))
   :hook
   (c-mode . (lambda () (c-guess)))
   :config
