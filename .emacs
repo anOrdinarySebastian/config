@@ -135,7 +135,7 @@ The app is chosen from your OS's preference."
         ("z" . #'repeat)
         ("i" . #'sebe/god-mode-insert-at-point))
   :custom
-  '(god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-") ("H" . "s-")))
+  (god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-") ("H" . "s-")))
   :init
   (setq idle-timer-god-mode-timer nil)
 
@@ -318,19 +318,20 @@ The app is chosen from your OS's preference."
     "s" 'org-store-link
     "a" (lambda ()
           (interactive )
-          (org-agenda nil "n"))
+          (org-agenda nil "i"))
     "A" 'org-agenda
     "c" 'org-capture
-    "O" 'org-clock-out)
+    "O" 'org-clock-out
+    "g" 'org-clock-goto)
 
   (sebe/helm-follow-definer
     "g" 'helm-grep-do-git-grep
     "o" 'helm-occur)
 
   (sebe/yas-follow-definer
-   "n" 'yas-new-snippet
-   "i" 'yas-insert-snippet
-   "v" 'yas-visit-snippet-file)
+    "n" 'yas-new-snippet
+    "i" 'yas-insert-snippet
+    "v" 'yas-visit-snippet-file)
 
   (sebe/copilot-follow-definer
     :keymaps 'copilot-mode-map
