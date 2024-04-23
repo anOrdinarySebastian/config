@@ -189,6 +189,9 @@ The app is chosen from your OS's preference."
   :config
   (pulsar-global-mode))
 
+(use-package avy
+  :ensure t)
+
 (use-package general
   :ensure t
   :defines
@@ -359,6 +362,10 @@ The app is chosen from your OS's preference."
   :config
   (projectile-mode 1))
 
+(use-package persp-projectile
+  :after projectil
+  :ensure t)
+
 
 ;; PATH modifictaions ==========================================================
 
@@ -400,10 +407,12 @@ The app is chosen from your OS's preference."
   (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter))
 
 (use-package helm-projectile
+  :ensure t
   :config
   (helm-projectile-on))
 
 (use-package helm-gtags
+  :ensure t
   :defer t
   :functions
   helm-gtags-dwim
@@ -427,8 +436,13 @@ The app is chosen from your OS's preference."
   (helm-gtags-auto-update t))
 
 (use-package company
+  :ensure t
   :config
   (global-company-mode 1))
+
+(use-package helm-company
+  :ensure t
+  :after company)
 
 (use-package cc-mode
   :ensure nil
@@ -452,7 +466,7 @@ The app is chosen from your OS's preference."
 (setq tab-stop-list '(2 4 6))
 
 (use-package smart-tabs-mode
-  :ensure nil
+  :ensure t
   :hook
   (c-ts-mode . (lambda () (setq indent-tabs-mode t)))
   (c++-ts-mode . (lambda () (setq indent-tabs-mode t)))
@@ -850,6 +864,29 @@ This is for easy linking"
      (shell  . t)))
 
   (org-clock-auto-clockout-insinuate))
+(use-package org-jira
+  :ensure t
+  :after org
+  :defines
+  org-default-jira-files
+  :init
+  (defcustom org-default-jira-files (concat org-directory "/jira-api")
+    "File to note down information about specific jira issues"
+    :type '(file :must-match t)
+    :group 'org-capture)
+  :config
+  ;; TODO: fix this
+  (setq org-agenda-files (nconc org-agenda-files (list org-default-jira-files)))
+
+  (setq org-jira-working-dir org-default-jira-files)
+  (setq jiralib-url "https://hms-networks.atlassian.net")
+
+  (defconst org-jira-progress-issue-flow
+    '(("TODO" . "Selected for Development")
+      ("Selected for Development" . "In Progress")
+      ("In Progress" . "In Review")
+      ("In Review" . "Done"))))
+
 
 ;; Tex mode ====================================================================
 (defun tex-init-addons ()
@@ -939,7 +976,9 @@ This is for easy linking"
     :group 'python))
 
 (use-package py-autopep8
-  :defer t
+  :after python
+  :ensure t
+
   :hook (python-mode . py-autopep8-mode)
   :hook (python-mode . pipenv-mode))
 
