@@ -194,6 +194,7 @@ The app is chosen from your OS's preference."
 
 (use-package general
   :ensure t
+  :after copilot
   :defines
   sebe/main-leader-key
   sebe/math-leader-key
@@ -384,22 +385,21 @@ The app is chosen from your OS's preference."
 
 (use-package copilot
   ;; Repo link https://github.com/zerolfx/copilot.el
-  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist" "*.el"))
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist"
+                                                             "*.el"))
+  :demand t
   :ensure nil
   :functions
   copilot--overlay-visible
   copilot-accept-completion
   :config
-  (defun indent-or-copilot ()
-    (interactive)
-    (if (copilot--overlay-visible)
-        (copilot-accept-completion)
-      (indent-for-tab-command)))
   (general-define-key "TAB" (general-predicate-dispatch 'indent-for-tab-command
-           (copilot--overlay-visible) 'copilot-accept-completion))
+                              (copilot--overlay-visible) 'copilot-accept-completion))
   :hook
   (c-ts-mode   . copilot-mode)
-  (c++-ts-mode . copilot-mode))
+  (c++-ts-mode . copilot-mode)
+  (bash-ts-mode . copilot-mode)
+  (python-ts-mode . copilot-mode))
 
 (use-package helm
   :ensure t
