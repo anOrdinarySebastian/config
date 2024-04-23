@@ -494,35 +494,12 @@ The app is chosen from your OS's preference."
 (menu-bar-mode 0)
 (display-time-mode 0)
 
-
-(defcustom display-line-numbers-exempt-modes
-  '(eshell-mode
-    shell-mode
-    ansi-term-mode
-    tex-mode latex-mode
-    org-mode
-    help-mode
-    eww-mode
-    compilation-mode
-    markdown-mode)
-  "Major modes on which to disable line numbers"
-  :require 'display-line-numbers
-  :group 'display-line-numbers
-  :type 'list
-  :version "green")
-
-(defun display-line-numbers--turn-on ()
-  "Turn on line numbers except for certain major modes.
-Exempt major modes are defined in `display-line-numbers-exempt-modes'"
-  (unless (or (minibufferp)
-              (member major-mode display-line-numbers-exempt-modes))
-    (display-line-numbers-mode)))
-
-(global-display-line-numbers-mode)
-
-;; Show lines and column on modeline
-(line-number-mode 1)
-(column-number-mode 1)
+;; Only show line numbers for derivatives of prog-mode
+(add-hook 'prog-mode-hook (lambda ()
+                            (display-line-numbers-mode 1)))
+;; Add margins for text mode
+(add-hook 'text-mode-hook (lambda ()
+                            (setq left-margin-width 3)))
 
 ;; Display time on mode line
 (setq display-time-24hr-format t)
