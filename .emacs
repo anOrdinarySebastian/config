@@ -254,7 +254,8 @@ The app is chosen from your OS's preference."
    "M-x" 'helm-M-x
    "M-i" 'god-mode-all
    "C-M-i" 'helm-company
-   "C-M-S-O" 'join-line)
+   "C-M-S-O" 'join-line
+   "TAB" 'indent-for-tab-command)
 
   (general-define-key
    :prefix "C-x"
@@ -294,15 +295,19 @@ The app is chosen from your OS's preference."
     "S" 'ispell-buffer
     "ö" 'replicate-line
     "w" 'fixup-whitespace
-    "a" 'align)
+    "a" 'align
+    "r" 'rotate-word-at-point)
 
   (sebe/find-file-follow-definer
-    "e" (lambda ()
+    "b" (lambda ()
           (interactive)
-          (find-file "~/.emacs"))
+          (find-file "~/.bashrc"))
     "d" (lambda ()
           (interactive)
-          (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini")))
+          (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
+    "e" (lambda ()
+          (interactive)
+          (find-file "~/.emacs")))
 
   (sebe/window-follow-definer
     "s" 'toggle-window-split
@@ -318,7 +323,7 @@ The app is chosen from your OS's preference."
     "C-r" 'helm-projectile-recentf
     "r" 'projectile-dired
     "4 r" 'projectile-dired-other-window
-    "g" 'projectile-vc
+    "g" 'helm-projectile-grep
     "t" 'projectile-test-project
     "c" 'projectile-compile-project)
 
@@ -448,7 +453,8 @@ The app is chosen from your OS's preference."
   :ensure nil
   :config
   (general-define-key "TAB" (general-predicate-dispatch 'c-indent-line-or-region
-                              (copilot--overlay-visible) 'copilot-accept-completion))
+                              (copilot--overlay-visible) 'copilot-accept-completion)
+                      :keymaps 'c-mode-base-map)
   :hook
   (c-mode . (lambda () (c-guess)))
   (c++--mode . (lambda () (c-guess))))
@@ -680,6 +686,10 @@ will be killed."
   sebe/get-prop-ID-from-jira-buf
   org-property-values
   org-clock-auto-clockout-insinuate
+  :bind
+  (:map org-mode-map
+        ("C-f" . 'forward-char)
+        ("C-b" . 'backward-char))
   :hook
   (org-mode         . flyspell-mode)
   (org-mode         . auto-fill-mode)
