@@ -57,13 +57,17 @@ The app is chosen from your OS's preference."
           (mapc (lambda (fPath) (let ((process-connection-type nil)) (start-process "" nil "xdg-open" fPath))) myFileList)))))))
 
 (use-package appearance
+  :disabled t
   :ensure nil
   :functions
   appearance-toggle-mode
   :bind
   ("C-M-<f11>" . 'appearance-toggle-mode))
 
-(use-package gerrit-getter)
+(use-package gerrit-getter
+  ;; Don't forget to make the symbolic link
+  :load-path "lisp/gerrit-el"
+  :ensure nil)
 
 (use-package vc-git
   :ensure nil
@@ -178,6 +182,7 @@ The app is chosen from your OS's preference."
   (add-to-list 'god-exempt-major-modes 'diff-mode))
 
 (use-package pulsar
+  :disabled t
   :ensure t
   :custom
   (pulsar-face 'pulsar-green)
@@ -438,10 +443,6 @@ The app is chosen from your OS's preference."
 (use-package cmake-ts-mode
   :mode "\\CMake\\'")
 
-(use-package emacs-lisp-mode
-  :hook
-  (emacs-lisp-mode . helm-gtags-mode))
-
 ;; Indentation
 (setq standard-indent 2)
 (setq sh-basic-offset 2)
@@ -462,9 +463,6 @@ The app is chosen from your OS's preference."
     ((c-indent-line-or-region . c-basic-offset)))
   (smart-tabs-insinuate 'c-ts 'c++-ts))
 
-;; On save
-;; (add-hook 'write-file-functions 'delete-trailing-whitespace)
-
 ;; Long line behaviour
 (set-default 'truncate-lines t)
 
@@ -474,8 +472,6 @@ The app is chosen from your OS's preference."
 (menu-bar-mode 0)
 (display-time-mode 0)
 
-;; line numbers
-(global-display-line-numbers-mode t)
 
 (defcustom display-line-numbers-exempt-modes
   '(eshell-mode
@@ -911,15 +907,23 @@ This is for easy linking"
   :config
   (setq lsp-enable-symbol-highlighting nil)
   (setq lsp-diagnostics-provider :none)
+  (add-to-list 'tramp-remote-path "~/.local/bin")
   (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection "clangd")
-                    :initialization-options "--log=verbose"
+   (make-lsp-client :new-connection (lsp-tramp-connection "clangd --log=verbose")
+                    ;; :initialization-options "--log=verbose"
                     :major-modes '(c-ts-mode c-mode c++-ts-mode c++-mode)
                     :remote? t
-                    :server-id 'clangd-bolt-II)))
+                    :server-id 'clangd-bolt-ii))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-tramp-connection "pylsp")
+                    :initialization-options ""
+                    :major-modes '(python-mode python-ts-mode)
+                    :remote? t
+                    :server-id 'pylsp-ep)))
 
 (use-package helm-lsp
-  :ensure nil
+  :disabled t
+  :ensure t
   :config
   (define-key lsp-mode-map [remap xref-find-apropos] #'helm-lsp-workspace-symbol))
 
@@ -961,6 +965,7 @@ This is for easy linking"
 
 ;; unicode-fonts ===============================================================
 (use-package unicode-fonts
+  :disabled t
   :ensure nil
   :config
   (unicode-fonts-setup))
