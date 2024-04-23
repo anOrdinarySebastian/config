@@ -432,11 +432,13 @@ The app is chosen from your OS's preference."
         ("C-c <" . 'helm-gtags-previous-history)
         ("C-c >" . 'helm-gtags-next-history))
   :hook
-  (c-mode      . helm-gtags-mode)
-  (c-ts-mode   . helm-gtags-mode)
-  (c++-mode    . helm-gtags-mode)
-  (c++-ts-mode . helm-gtags-mode)
-  (asm-mode    . helm-gtags-mode)
+  (c-mode          . helm-gtags-mode)
+  (c-ts-mode       . helm-gtags-mode)
+  (c++-mode        . helm-gtags-mode)
+  (c++-ts-mode     . helm-gtags-mode)
+  (asm-mode        . helm-gtags-mode)
+  (bash-ts-mode    . helm-gtags-mode)
+  (emacs-lisp-mode . helm-gtags-mode)
   :custom
   (helm-gtags-auto-update t))
 
