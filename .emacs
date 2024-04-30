@@ -259,6 +259,10 @@ The app is chosen from your OS's preference."
    "TAB" 'indent-for-tab-command)
 
   (general-define-key
+   :prefix "M-g"
+   "i" 'helm-imenu)
+
+  (general-define-key
    :prefix "C-x"
    "p" 'prev-window
    "O" 'other-frame
