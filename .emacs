@@ -98,6 +98,31 @@ The app is chosen from your OS's preference."
                                   " file(s).")))
         (message "Not in a vc git buffer."))))
 
+  (defun sen/log-view-hash-on-line ()
+    "Get the has on the current line"
+    (let ((commit-hash ""))
+      (save-excursion
+        (goto-char (pos-bol))
+        ;; first check if there is an * or | as the first character on
+        ;; the line, then we can assume the line is minimized
+        (unless (looking-at "^[*|]")
+          ;; Else me must first go to a "commit line"
+          (log-view-msg-prev))
+        ;; Then we can search for the hash
+        (re-search-forward "\\(?1:[0-9a-z]+\\)..:" nil t)
+        (setq commit-hash (match-string 1)))
+      commit-hash))
+
+  (defun sen/vc-git-fixup ()
+    "Create a fixup commit related to the one under point"
+    (interactive)
+    (let ((commit-hash (sen/log-view-hash-on-line)))
+      (vc-git-command nil 0 nil  "commit" (format "--fixup=%s" commit-hash))))
+
+  (defun my-vc-git-amend (&optional revision vc-fileset comment)
+    (interactive "P")
+    (my-vc-git-command "Amended" (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+
   (defun my-vc-git-add (&optional revision vc-fileset comment)
     (interactive "P")
     (my-vc-git-command "Staged" 'vc-git-register))
@@ -106,6 +131,17 @@ The app is chosen from your OS's preference."
     (interactive "P")
     (my-vc-git-command "Unstaged"
                        (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+  :bind
+  (:map vc-git-log-view-mode-map
+        ("f" . 'sen/vc-git-fixup))
+  :custom
+  ;; This doesn't seem to apply :/
+  (vc-git-root-log-format
+   '("%h..: %an %ad%d %s" "^\\(?:[*/\\| ]+ \\)?\\(?1:[0-9a-z]+\\)..: \\(?3:.*?\\)[ \11]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(?2:([^)]+)\\)?"
+     ((1 'log-view-message)
+      (2 'change-log-list nil lax)
+      (3 'change-log-name)
+      (4 'change-log-date)))))
 
   (define-key vc-prefix-map [(r)] 'vc-revert-buffer)
   (define-key vc-dir-mode-map [(r)] 'vc-revert-buffer)
