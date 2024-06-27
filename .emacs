@@ -69,19 +69,20 @@ The app is chosen from your OS's preference."
   :load-path "lisp/gerrit-el"
   :ensure nil)
 
+(use-package smerge-mode
+  :ensure nil
+  :defines smerge-mode
+  :demand t)
+
 (use-package vc-git
   :ensure nil
+  :after vc-dir
   :demand t
-  :functions
-  vc-git--symbolic-ref)
-
-(use-package vc-dir
-  :ensure nil
-  :demand t ;; This is needed as we're using vc in the modeline
   :defines
   vc-fileset
   vc-dir-mode-map
   :functions
+  vc-git--symbolic-ref
   my-vc-git-command
   vc-dir-hide-up-to-date
   vc-dir-refresh
@@ -143,6 +144,10 @@ The app is chosen from your OS's preference."
       (3 'change-log-name)
       (4 'change-log-date)))))
 
+(use-package vc-dir
+  :ensure nil
+  :demand t ;; This is needed as we're using vc in the modeline)
+  :config
   (define-key vc-prefix-map [(r)] 'vc-revert-buffer)
   (define-key vc-dir-mode-map [(r)] 'vc-revert-buffer)
   (define-key vc-prefix-map [(a)] 'my-vc-git-add)
