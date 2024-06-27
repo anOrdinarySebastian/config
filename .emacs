@@ -856,6 +856,30 @@ Take-aways: %?")
 
   (defvar org-electric-pairs '((?/ . ?/) (?= . ?=) (?* . ?*) (?~ . ?~) (?+ . ?+)) "Electric pairs for org-mode.")
   :config
+  ;; To eager load org-mode
+  (with-temp-buffer (org-mode))
+
+  (setq org-agenda-custom-commands
+        '(("i" "Agenda and Jira"
+           ((tags-todo "{A[[:digit:]]+_[[:digit:]]+}+TODO={TODO\\|SELECTED-FOR-DEVELOPMENT}"
+                       ((org-agenda-overriding-header "Jiras assigned to me")))
+            (todo "BLOCKED"
+                  ((org-agenda-overriding-header "Blocked Jiras")))
+            (todo "IN-PROGRESS"
+                  ((org-agenda-overriding-header "Started Jiras")))
+            (todo "IN-REVIEW"
+                  ((org-agenda-overriding-header "Jiras on Gerrit")))
+            (agenda "")
+            (tags-todo "meeting"
+                       ((org-agenda-overriding-header "Meetings to plan")))
+            (tags-todo "bolt5g"
+                       ((org-agenda-overriding-header "Stealth backlog Bolt 5G")))
+            (tags-todo "bolt2"
+                       ((org-agenda-overriding-header "Stealth backlog Bolt II")))
+            (tags-todo "-{bolt.*}"
+                       ((org-agenda-overriding-header "Everything else")))))))
+
+
   (defun org-add-electric-pairs ()
     (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs))
