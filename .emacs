@@ -178,7 +178,7 @@ The app is chosen from your OS's preference."
   :bind
   (:map god-local-mode-map
         ("z" . #'repeat)
-        ("i" . #'sebe/god-mode-insert-at-point))
+        ("i" . #'god-mode-all))
   :custom
   (god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-") ("H" . "s-")))
   :init
@@ -220,7 +220,10 @@ The app is chosen from your OS's preference."
 
   (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
   (setq god-mode-enable-function-key-translation nil)
-  (add-to-list 'god-exempt-major-modes 'diff-mode))
+  (add-to-list 'god-exempt-major-modes 'diff-mode)
+  (general-define-key "SPC" (general-key-dispatch 'self-insert-command
+                              :timeout 0.5
+                              "SPC" 'god-mode-all)))
 
 (use-package pulsar
   :disabled t
