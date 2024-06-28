@@ -307,6 +307,10 @@ The app is chosen from your OS's preference."
    "i" 'helm-imenu)
 
   (general-define-key
+   :prefix "C-c"
+   "c" 'org-capture)
+
+  (general-define-key
    :prefix "C-x"
    "p" 'prev-window
    "O" 'other-frame
@@ -382,7 +386,6 @@ The app is chosen from your OS's preference."
           (interactive )
           (org-agenda nil "i"))
     "A" 'org-agenda
-    "c" 'org-capture
     "O" 'org-clock-out
     "g" 'org-clock-goto)
 
@@ -765,7 +768,12 @@ will be killed."
       entry
       (file+olp+datetree org-default-journal-file)
       "* [%<%H:%M>] Quit\n%?"
-      :immediate-finish t)
+      :immediate-finish t
+      :before-finalize
+      (lambda ()
+        "Check if clock is running, clock out if it is"
+        (if (org-clock-is-active)
+          (org-clock-out))))
 
      ("jp" "Pause"
       entry
@@ -774,29 +782,10 @@ will be killed."
       :clock-in t
       :clock-keep t)
 
-     ("jj" "Work on Jira"
-      entry
-      (file+function org-default-jira-file org-goto)
-      "* %<%y-%m-%d %A>\n\n%?"
-      :clock-in t
-      :clock-keep t)
-
-     ("jJ" "New Jira"
-      entry
-      (file+function org-default-jira-file org-goto)
-      (function new-jira-template))
-
      ("jl" "General Log"
       entry
       (file+olp+datetree org-default-journal-file)
       (function general-log-template))
-
-     ("jL" "General Log, clocked"
-      entry
-      (file+olp+datetree org-default-journal-file)
-      (function general-log-template)
-      :clock-in t
-      :clock-keep t)
 
      ("jm" "Meeting "
       entry
@@ -831,7 +820,7 @@ will be killed."
   ;; `org-capture-templates' to have a cleaner alist
   (defun start-day-template () nil
          "\
-* [%<%H:%M>] Started %(make-string 48 ?-)
+* [%<%H:%M>] Started [/] %(make-string 44 ?-)
 
 Checklist
 - [ ] Set location%?
@@ -839,22 +828,19 @@ Checklist
 - [ ] News
 - [ ] Mail/Meetings
 - [ ] Agenda
+- [ ] Jenkins
 - [ ] Jira
 - [-] Gerrit")
 
-  (defun new-jira-template () nil
-         "\
-* IN-PROGRESS %^{Jira title}
-:PROPERTIES:
-:JIRA:  [[https://jira.hms.se/browse/A%^{Jira Number}][A%\\2]]
-:ID: %\\2
-:END:\n%?")
-
   (defun general-log-template () nil
+         "Prompt for a log message and a project to report time on.
+If the region is active then paste it into the capture and,
+finally, put the point just under the PROPERTY drawer"
          "\
-* [%<%H:%M>] Log
+* [%<%H:%M>] %^{Log message: |Log}
 %^{PROJECT}p
-%(sebe/org-capture-template-workon-jira)%?")
+%?
+%i")
 
   (defun book-template () nil
          "\
@@ -891,26 +877,6 @@ Take-aways: %?")
   (defun org-add-electric-pairs ()
     (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs))
-
-  (defun sebe/get-prop-ID-from-jira-buf ()
-    "Specific funtion for getting the IDs from the jira.org buffer.
-This is for easy linking"
-    (interactive)
-    (let ((buf-name "jira.org"))
-      (if (bufferp (get-buffer buf-name))
-          (with-current-buffer buf-name
-            (org-property-values "ID"))
-        (message "Jira buffer is not open"))))
-
-  (defun sebe/org-capture-template-workon-jira ()
-    "Function returning a string to be inserted as the template for a
-                        workon jira capture"
-    (let ((jira-id (completing-read "Jira ID: "
-                                    (sebe/get-prop-ID-from-jira-buf))))
-      (if (string= jira-id "")
-          (format "")
-        (format "Working on [[id:%1$s][%1$s]]." jira-id))))
-
   (defface org-in-progress
     '((((class color) (min-colors 88) (background light))
        :background "darkseagreen2")
@@ -924,7 +890,14 @@ This is for easy linking"
    '((python . t)
      (shell  . t)))
 
-  (org-clock-auto-clockout-insinuate))
+  (org-clock-auto-clockout-insinuate)
+
+  ;;; To save the clock history across Emacs sessions, use
+  (if (file-exists-p org-clock-persist-file)
+    ;; (setq org-clock-persist 'history)
+    (org-clock-persistence-insinuate)
+    (shell-command (concat "touch " org-clock-persist-file))))
+
 (use-package org-jira
   :ensure t
   :after org
