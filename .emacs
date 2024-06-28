@@ -716,9 +716,7 @@ will be killed."
   org-default-todo-file
   org-default-journal-file
   org-default-books-file
-  org-default-jira-file
   :functions
-  sebe/get-prop-ID-from-jira-buf
   org-property-values
   org-clock-auto-clockout-insinuate
   :bind
@@ -728,19 +726,23 @@ will be killed."
   :hook
   (org-mode         . flyspell-mode)
   (org-mode         . auto-fill-mode)
+  (org-mode         . visual-line-mode)
   (org-capture-mode . olivetti-mode)
   (org-capture-mode . (lambda ()
                         (god-local-mode 0)))
-  (org-mode         . org-add-electric-pairs)
+
   :custom
   (org-agenda-files (list org-default-journal-file
                           org-default-notes-file
-                          org-default-todo-file
-                          org-default-jira-file))
+                          org-default-todo-file))
   (org-todo-keywords '((sequence "TODO" "IN-PROGRESS" "DONE")))
   (org-todo-keyword-faces '(("TODO" . org-todo)
+                            ("SELECTED-FOR-DEVELOPMENT" . org-todo)
                             ("IN-PROGRESS". org-in-progress)
-                            ("DONE" . org-done)))
+                            ("IN-REVIEW" . org-in-review)
+                            ("BLOCKED" . org-block)
+                            ("DONE" . org-done)
+                            ("PENDING-RELEASE" . org-done)))
   (org-use-speed-commands t)
   (org-clock-continuously nil)
   (org-capture-templates
@@ -802,8 +804,24 @@ will be killed."
       (file+olp+datetree org-default-books-file)
       (function book-template))))
   :init
+  (defface org-in-progress
+    '((((class color) (min-colors 88) (background light))
+       :background "darkseagreen2")
+      (((class color) (min-colors 88) (background dark))
+       :foreground "medium turquoise"))
+    "Face for TODO-tasks tagged with IN-PROGRESS"
+    :group 'org-faces)
+  (defface org-in-review
+    '((((class color) (min-colors 88) (background light))
+       :background "darkseagreen2")
+      (((class color) (min-colors 88) (background dark))
+       :foreground "yellow3"))
+    "Face for TODO-tasks tagged with IN-PROGRESS"
+    :group 'org-faces)
+
   (setq org-directory "~/Documents/org")
   (setq org-default-notes-file (concat org-directory "/notes.org"))
+
   (defcustom  org-default-todo-file (concat org-directory "/todos.org")
     "File where undated TODOs reside"
     :type '(file :must-match t)
@@ -814,10 +832,6 @@ will be killed."
     :group 'org-capture)
   (defcustom org-default-books-file (concat org-directory "/books.org")
     "File to note down thoughts from reading books"
-    :type '(file :must-match t)
-    :group 'org-capture)
-  (defcustom org-default-jira-file (concat org-directory "/jira.org")
-    "File to note down information about specific jira issues"
     :type '(file :must-match t)
     :group 'org-capture)
 
@@ -882,13 +896,7 @@ Take-aways: %?")
   (defun org-add-electric-pairs ()
     (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
     (setq-local electric-pair-text-pairs electric-pair-pairs))
-  (defface org-in-progress
-    '((((class color) (min-colors 88) (background light))
-       :background "darkseagreen2")
-      (((class color) (min-colors 88) (background dark))
-       :foreground "medium turquoise"))
-    "Face for TODO-tasks tagged with IN-PROGRESS"
-    :group 'org-faces)
+  (org-add-electric-pairs)
 
   (org-babel-do-load-languages
    'org-babel-load-languages
