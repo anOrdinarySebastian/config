@@ -117,24 +117,38 @@ The app is chosen from your OS's preference."
   (defun sen/vc-git-fixup ()
     "Create a fixup commit related to the one under point"
     (interactive)
-    (let ((commit-hash (sen/log-view-hash-on-line)))
-      (vc-git-command nil 0 nil  "commit" (format "--fixup=%s" commit-hash))))
+    (let ((fixup-switch
+           (format "--fixup=%s" (sen/log-view-hash-on-line))))
+      (vc-git-command nil 0 nil  "commit" fixup-switch)))
+
+  (defun sen/vc-git-checkout ()
+    "Check out the commit under point"
+    (interactive)
+    (vc-retrieve-tag
+     (vc-root-dir)
+     (sen/log-view-hash-on-line)))
 
   (defun my-vc-git-amend (&optional revision vc-fileset comment)
     (interactive "P")
-    (my-vc-git-command "Amended" (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+    (my-vc-git-command
+     "Amended"
+     (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
 
   (defun my-vc-git-add (&optional revision vc-fileset comment)
     (interactive "P")
-    (my-vc-git-command "Staged" 'vc-git-register))
+    (my-vc-git-command
+     "Staged"
+     'vc-git-register))
 
   (defun my-vc-git-reset (&optional revision vc-fileset comment)
     (interactive "P")
-    (my-vc-git-command "Unstaged"
-                       (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+    (my-vc-git-command
+     "Unstaged"
+     (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
   :bind
   (:map vc-git-log-view-mode-map
-        ("f" . 'sen/vc-git-fixup))
+        ("F" . 'sen/vc-git-fixup)
+        ("C" . 'sen/vc-git-checkout))
   :custom
   ;; This doesn't seem to apply :/
   (vc-git-root-log-format
