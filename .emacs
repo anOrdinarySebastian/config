@@ -678,7 +678,6 @@ will be killed."
 (use-package markdown-mode
   :ensure t
   :mode ("README\\.md\\'" . gfm-mode)
-  :hook (markdown-mode . flyspell-mode)
   :init (setq markdown-command "multimarkdown"))
 
 ;; Olivetti mode ===============================================================
@@ -692,16 +691,22 @@ will be killed."
 
 
 
-;; Flyspell mode ===============================================================
+;; Fly* mode ===============================================================
 (use-package flyspell
   :hook
-  (vc-git-log-edit-mode . flyspell-mode)
+  (text-mode-hook . flyspell-mode)
+  (prog-mode-hook . flyspell-prog-mode)
   :config
   (define-key flyspell-mode-map (kbd "C-M-i") nil)
   (define-key flyspell-mode-map (kbd "C-.") nil)
   (cond
    ((string= (system-name) "LT-JRW6NN3")
     (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe"))))
+
+(use-package flymake-shellcheck
+  :commands flymake-shellcheck-load
+  :hook (bash-ts-mode-hook . flymake-shellcheck-load))
+
 
 ;; Org mode ====================================================================
 (use-package org
