@@ -948,20 +948,10 @@ Take-aways: %?")
   :defer t
   :hook (LaTeX-mode . tex-init-addons)
   :defines TeX-arg-input-file-search
-  :functions TeX-add-symbols
   :init
   (setq reftex-plug-into-AUCTeX t)
   (setq reftex-default-bibliography '("../references.bib"))
-  (setq TeX-arg-input-file-search nil)
-  :config
-  (TeX-add-symbols
-   '("todo" [ "Options" ] "What")
-   '("acrshort" "idn") ;; These could likely be optimized with a list of the available acronyms which exists in LaTeX.el...
-   '("acrlong" "idn")
-   '("newacronym" "idn" "Short" "Long")
-   '("SI" "Number" "Units")
-   )
-  )
+  (setq TeX-arg-input-file-search nil))
 
 ;; DocView Mode ================================================================
 (use-package doc-view
