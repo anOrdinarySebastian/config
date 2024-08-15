@@ -78,6 +78,9 @@ The app is chosen from your OS's preference."
   :ensure nil
   :after vc-dir
   :demand t
+  :hook
+  (vc-git-log-edit-mode . auto-fill-mode)
+  (vc-git-log-edit-mode . flyspell-mode)
   :defines
   vc-fileset
   vc-dir-mode-map
@@ -87,8 +90,6 @@ The app is chosen from your OS's preference."
   vc-dir-hide-up-to-date
   vc-dir-refresh
   :config
-  ;; In vc-git and vc-dir for git buffers, make (C-x v) a run git add, u run git
-  ;; reset, and r run git reset and checkout from head.
   (defun my-vc-git-command (verb fn)
     (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
            (backend (car fileset-arg))
@@ -128,11 +129,11 @@ The app is chosen from your OS's preference."
      (vc-root-dir)
      (sen/log-view-hash-on-line)))
 
-  (defun my-vc-git-amend (&optional revision vc-fileset comment)
-    (interactive "P")
+  (defun sen/vc-git-push-gerrit ()
+    (interactive)
     (my-vc-git-command
-     "Amended"
-     (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+     "Pushed to Gerrit"
+     (lambda (files) (vc-git-command nil 0 files "push" "origin" "HEAD:refs/for/master"))))
 
   (defun my-vc-git-add (&optional revision vc-fileset comment)
     (interactive "P")
@@ -149,6 +150,8 @@ The app is chosen from your OS's preference."
   (:map vc-git-log-view-mode-map
         ("F" . 'sen/vc-git-fixup)
         ("C" . 'sen/vc-git-checkout))
+  (:map vc-dir-mode-map
+        ("P" . sen/vc-git-push-gerrit))
   :custom
   ;; This doesn't seem to apply :/
   (vc-git-root-log-format
