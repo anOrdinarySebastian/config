@@ -791,20 +791,19 @@ will be killed."
      ("jq" "Quit day"
       entry
       (file+olp+datetree org-default-journal-file)
-      "* [%<%H:%M>] Quit\n%?"
+      (function journal-quit-template)
       :immediate-finish t
       :before-finalize
       (lambda ()
         "Check if clock is running, clock out if it is"
         (if (org-clock-is-active)
-          (org-clock-out))))
+            (org-clock-out))))
 
      ("jp" "Pause"
       entry
       (file+olp+datetree org-default-journal-file)
       "* [%<%H:%M>] Paused\nGoing for %?"
-      :clock-in t
-      :clock-keep t)
+      :clock-in t)
 
      ("jl" "General Log"
       entry
@@ -865,18 +864,30 @@ Checklist
 - [ ] Mail/Meetings
 - [ ] Agenda
 - [ ] Jenkins
-- [ ] Jira
+- [ ] [[https://hms-networks.atlassian.net/issues/?filter=10331][Jira]]
 - [-] Gerrit")
 
-  (defun general-log-template () nil
-         "Prompt for a log message and a project to report time on.
+  (defun journal-quit-template ()
+    "Print the clock report from the jira directory and quit"
+    (let* ((org-files (directory-files org-default-jira-files t "^A[0-9]\\{4\\}\\.org$"))
+           (org-clock-clocktable-default-properties `(:maxlevel 3 :block yesterday :scope ,org-files)))
+      "* [%<%H:%M>] Quit\n%(org-clock-report)"))
+
+  (defun general-log-template ()
+    "Prompt for a log message and a project to report time on.
+If a task is currently clocked, add it at the top of the capture.
 If the region is active then paste it into the capture and,
 finally, put the point just under the PROPERTY drawer"
-         "\
-* [%<%H:%M>] %^{Log message: |Log}
-%^{PROJECT}p
-%?
-%i")
+    (let ((include-clock-link ""))
+      (if (org-clock-is-active)
+          (setq include-clock-link "Clocked in on: %K\n"))
+      (format
+       "\
+* [%%<%%H:%%M>] %%^{Log message: |Log}
+%%^{PROJECT}p%s
+%%?
+%%i"
+       include-clock-link)))
 
   (defun book-template () nil
          "\
