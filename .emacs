@@ -475,6 +475,11 @@ god-mode if that is the case"
   :custom (persp-mode-prefix-key (kbd "C-\""))
   :init (persp-mode))
 
+(use-package outline-minor-mode
+  :hook
+  (python-mode . outline-minor-mode)
+  (bash-ts-mode . outline-minor-mode))
+
 (use-package project
   :disabled t)
 
@@ -775,6 +780,7 @@ SEQ may be an atom or a sequence."
 
 ;; Olivetti mode ===============================================================
 (use-package olivetti
+  :disabled nil
   :ensure t
   :demand t
   ;; :hook (org-capture-mode)
@@ -1128,10 +1134,11 @@ Take-aways: %?")
   :ensure t
 
   :hook (python-mode . py-autopep8-mode)
-  :hook (python-mode . pipenv-mode))
+  :hook (python-ts-mode . py-autopep8-mode))
 
 ;; Bash mode ==========================================================
 (use-package sh-mode
+  :hook (bash-ts-mode . flymake-mode)
   :mode
   ("\\.bats\\'" . bash-ts-mode)
   ("\\.sh\\'" . bash-ts-mode))
@@ -1144,20 +1151,35 @@ Take-aways: %?")
 (add-hook 'compilation-mode-hook (lambda()
                                    (visual-line-mode t)))
 
+(use-package combobulate
+  ;; Checking out doesn't work for some reason, there seems to something that
+  ;; just doesn't work. I managed to fix it manually though
+  ;; ---
+  ;; Repo link https://github.com/mickeynp/combobulate
+  ;; :straight (:host github :repo "mickeynp/combobulate" :files ("dist"
+  ;;                                                              "*.el"))
+  :ensure nil
+  :load-path "lisp/combobulate"
+  :hook
+  ;; (c-ts-mode   . combobulate)
+  ;; (c++-ts-mode . combobulate)
+  ;; (bash-ts-mode . combobulate)
+  (python-ts-mode . combobulate-mode)
+  )
+
 ;; YAS mode ====================================================================
 (use-package yasnippet
   :ensure t
   :config
   (yas-global-mode 1))
 
-;; unicode-fonts ===============================================================
-(use-package unicode-fonts
-  :disabled t
-  :ensure nil
-  :config
-  (unicode-fonts-setup))
-
 ;; ================= GENERAL PURPOSE FUNCTIONS =================================
+(use-package which-key
+  :custom
+  (which-key-idle-delay 2.5)
+  :config
+  (which-key-mode 1))
+
 (defun next-double-window ()
   (interactive nil)
   (other-window 2))
@@ -1190,53 +1212,18 @@ Take-aways: %?")
                             (shell-command-to-string "git log -1 --oneline")))
 
 ;; ================= GLOBAL VARIABLES ==========================================
-(cond
- ((string= (system-name) "LT-JRW6NN3")
-  (setq exec-path '("c:/Users/sebe/bin"
-                    "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI"
-                    "C:/Program Files (x86)/VMware/VMware Workstation/bin/"
-                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/"
-                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/"
-                    "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/"
-                    "C:/Emacs/emacs-29.1/bin"
-                    "C:/Program Files/iperf-3.1.3-win64"
-                    "c:/Program Files/libMultiMarkdown6.6.0/bin"
-                    "C:/WINDOWS/system32/config/systemprofile/scripts"
-                    "C:/WINDOWS/system32/config/systemprofile/bin"
-                    "C:/Program Files/gs/gs10.00.0/bin"
-                    "C:/Program Files/Git/cmd"
-                    "C:/Program Files/Git/usr/bin"
-                    "C:/WINDOWS/system32"
-                    "C:/WINDOWS"
-                    "C:/WINDOWS/System32/Wbem"
-                    "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin"
-                    "C:/Program Files (x86)/CMake/bin"
-                    "C:/Program Files/Git/mingw64/bin"
-                    "C:/Program Files/nodejs/"
-                    "C:/WINDOWS/System32/WindowsPowerShell/v1.0/"
-                    "C:/Program Files/Microsoft VS Code/bin"
-                    "C:/Program Files/PowerShell/7/"
-                    "C:/Users/sebe/AppData/Local/glo668wb/bin"
-                    "C:/Program Files/doxygen/bin"
-                    "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin"
-                    (format "C:/Users/sebe/AppData/Local/Programs/Python/%s/Scripts/" python-executable-version)
-                    (format "C:/Users/sebe/AppData/Local/Programs/Python/%s/" python-executable-version)
-                    "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/"
-                    "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps"
-                    "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/"
-                    "C:/Program Files (x86)/Nmap"
-                    "C:/Users/sebe/AppData/Roaming/npm"
-                    "c:/Emacs/emacs-29.1/libexec/emacs/29.1/x86_64-w64-mingw32"))))
-
 (setq enable-remote-dir-locals t)
 ;; Tree sitter grammars: https://github.com/emacs-tree-sitter/tree-sitter-langs
 (setq major-mode-remap-alist
       '((js-json-mode . json-ts-mode)
         (python-mode  . python-ts-mode)
         (c-mode       . c-ts-mode)
-        (sh-mode      . bash-ts-mode)))
+        (sh-mode      . bash-ts-mode)
+        (css-mode     . css-ts-mode)
+        (js-mode      . js-ts-mode)))
 (setq sentence-end-double-space nil)
 (setq dired-dwim-target t)
+(setq backup-directory-alist `(("." . "~/.saves")))
 
 ;; ================= MODELINE MANAGEMENT =======================================
 
@@ -1437,7 +1424,6 @@ Read Info node `(elisp) Pixel Specification'.")
                 prot-modeline-align-right
                 sen-modeline-org-clock
                 sen-modeline-clock))
-
 
 ;; ================= SPECIAL PURPOSE FIXES =====================================
 
@@ -1447,6 +1433,84 @@ Read Info node `(elisp) Pixel Specification'.")
 ;; (define-key key-translation-map [dead-circumflex] "^")
 ;; (define-key key-translation-map [dead-diaeresis] "\"")
 ;; (define-key key-translation-map [dead-tilde] "~")
+
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
+ '(avy-lead-face ((t (:background "DarkSeaGreen4" :foreground "black"))))
+ '(avy-lead-face-0 ((t (:inherit avy-lead-face :background "DarkSeaGreen3"))))
+ '(avy-lead-face-1 ((t (:inherit avy-lead-face :background "DarkSeaGreen2"))))
+ '(avy-lead-face-2 ((t (:inherit avy-lead-face :background "DarkSeaGreen1"))))
+ '(company-tooltip ((t (:background "black"))))
+ '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
+ '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
+ '(completions-annotations ((t (:foreground "antique white" :slant italic))))
+ '(completions-highlight ((t (:foreground "PaleTurquoise1"))))
+ '(cursor ((t (:background "lavender"))))
+ '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
+ '(diff-header ((t (:inherit diff-file-header :extend t :weight normal))))
+ '(diff-refine-added ((t (:inherit diff-refine-changed :background "#004000"))))
+ '(diff-refine-removed ((t (:inherit diff-refine-changed :background "dark red"))))
+ '(dired-mark ((t (:inherit font-lock-keyword-face))))
+ '(dired-perm-write ((t (:inherit default :foreground "snow"))))
+ '(dired-set-id ((t (:inherit dired-perm-write :foreground "snow"))))
+ '(dired-symlink ((t (:inherit font-lock-comment-delimiter-face))))
+ '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
+ '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
+ '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
+ '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
+ '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
+ '(font-lock-function-call-face ((t (:inherit font-lock-function-name-face :weight bold))))
+ '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
+ '(font-lock-keyword-face ((t (:foreground "cyan3"))))
+ '(font-lock-string-face ((t (:foreground "lavender"))))
+ '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
+ '(font-lock-warning-face ((t (:foreground "firebrick1" :weight bold))))
+ '(fringe ((t (:inherit default :background "black"))))
+ '(header-line ((t (:background "grey25" :foreground "grey90" :box (:line-width (2 . 2) :color "grey25" :style flat-button) :height 0.9))))
+ '(helm-M-x-short-doc ((t (:foreground "DimGray"))))
+ '(helm-buffer-directory ((t (:inherit dired-directory :extend t :background "gray20"))))
+ '(helm-candidate-number ((t (:inherit nil :extend t :foreground "orchid"))))
+ '(helm-match ((t (:extend t :foreground "light cyan"))))
+ '(helm-selection ((t (:extend t :background "grey60" :distant-foreground "black" :weight bold))))
+ '(helm-source-header ((t (:extend t :background "Purple4" :foreground "thistle2" :box (:line-width (10 . 2) :color "Purple4" :style flat-button)))))
+ '(hi-yellow ((t (:background "orange4" :foreground "black"))))
+ '(line-number ((t (:inherit default :foreground "grey40"))))
+ '(line-number-current-line ((t (:inherit line-number :foreground "white"))))
+ '(mode-line ((t (:background "grey15" :foreground "cadet blue" :height 1.0))))
+ '(mode-line-active ((t (:inherit mode-line :box (:line-width (1 . 5) :color "grey15" :style flat-button)))))
+ '(mode-line-buffer-id ((t (:background "grey15" :foreground "orchid" :weight bold :height 0.9))))
+ '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
+ '(mode-line-inactive ((t (:background "grey8" :foreground "grey50" :box (:line-width (2 . 5) :color "grey8" :style flat-button) :weight light :height 1.0))))
+ '(org-agenda-clocking ((t (:background "grey10" :box (:line-width (1 . 2) :color "grey75" :style released-button)))))
+ '(org-block ((t (:inherit shadow :extend t :background "grey12"))))
+ '(org-date ((t (:foreground "Dark Cyan" :underline t))))
+ '(org-headline-done ((t (:foreground "light green"))))
+ '(org-level-1 ((t (:extend t :foreground "deep sky blue" :weight bold))))
+ '(org-level-2 ((t (:inherit org-level-1 :extend nil :foreground "dodger blue"))))
+ '(org-level-3 ((t (:inherit org-level-1 :extend nil :foreground "royal blue"))))
+ '(org-level-4 ((t (:inherit org-level-1 :extend nil :foreground "slate blue"))))
+ '(org-mode-line-clock ((t (:foreground "medium sea green" :underline t))))
+ '(org-scheduled-previously ((t (:foreground "dark khaki"))))
+ '(persp-selected-face ((t (:inherit font-lock-constant-face :weight normal))))
+ '(region ((t (:extend t :background "purple4"))))
+ '(secondary-selection ((t (:extend t :background "LightCyan2"))))
+ '(whitespace-empty ((t (:extend t :background "grey80" :foreground "firebrick"))))
+ '(whitespace-hspace ((t (:inherit default :foreground "grey20"))))
+ '(whitespace-indentation ((t (:background "light yellow" :foreground "firebrick"))))
+ '(whitespace-space ((t (:inherit whitespace-hspace))))
+ '(widget-field ((t (:inherit default :extend nil :foreground "white"))))
+ '(window-divider ((t (:foreground "black"))))
+ '(window-divider-first-pixel ((t (:inherit window-divider))))
+ '(window-divider-last-pixel ((t (:inherit window-divider)))))
+
+(put 'dired-find-alternate-file 'disabled nil)
+(put 'upcase-region 'disabled nil)
+(put 'narrow-to-page 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -1455,6 +1519,8 @@ Read Info node `(elisp) Pixel Specification'.")
  '(ansi-color-names-vector
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "#d0d0d0"])
  '(auto-save-default nil)
+ '(avy-background t)
+ '(avy-flyspell-correct-function 'flyspell-auto-correct-word)
  '(company-clang-arguments '("--log=verbose"))
  '(company-clang-executable "/usr/bin/clangd")
  '(company-idle-delay nil)
@@ -1547,43 +1613,44 @@ Read Info node `(elisp) Pixel Specification'.")
       (path-separator . ":")
       (null-device . "/dev/null"))))
  '(copilot-idle-delay 60)
- '(custom-enabled-themes '(manoj-dark))
+ '(custom-enabled-themes '(sen-dark tango))
+ '(custom-safe-themes
+   '("ca13c52ee7cb7392aefe5b9d4c9a61aa0bb54ed4845d54d4f0b4b2c98a3614df" "114a8f7143a01e8ba083700f4dfaab333de3e2866c968b3849a1c5fef00e3c08" "05747b91f589bdb7ce9f93849a96f6cf8ee26fe479c5f1964d91c4a5a81d36c2" default))
  '(define-it-show-google-translate nil)
+ '(desktop-save-mode t)
  '(dired-listing-switches "-alh")
  '(display-buffer-alist
-   '(("\\*Help\\*"
-      (display-buffer-same-window))
-     ("\\*Compilation.*" display-buffer-same-window)
-     ("\\*Find.*" display-buffer-same-window)
-     ("\\*Customize" display-buffer-same-window)
-     ("\\*vc-.*" display-buffer-same-window)))
+   '(("\\\\*Help\\\\*"
+      (display-buffer-reuse-window display-buffer-at-bottom)
+      (nil))
+     ("\\\\*Compilation.*" display-buffer-same-window
+      (nil))
+     ("\\\\*Find.*" display-buffer-same-window
+      (nil))
+     ("\\\\*vc-dir\\\\*" display-buffer-in-side-window
+      (side . left)
+      (window-width . 70))
+     ("\\\\*vc-change-log\\\\*" display-buffer-in-side-window
+      (side . bottom)
+      (window-height . 25))
+     ("CAPTURE-" display-buffer-pop-up-window
+      (nil))))
  '(display-buffer-base-action '(display-buffer-in-side-window (side . right)))
  '(doc-view-continuous t)
  '(doc-view-resolution 300)
  '(echo-keystrokes 0.5)
  '(eldoc-echo-area-prefer-doc-buffer nil)
- '(elpy-formatter 'autopep8)
- '(elpy-get-info-from-shell t)
- '(elpy-modules
-   '(elpy-module-company elpy-module-eldoc elpy-module-pyvenv elpy-module-yasnippet elpy-module-autodoc elpy-module-sane-defaults))
- '(elpy-project-root-finder-functions
-   '(elpy-project-find-projectile-root elpy-project-find-git-root))
- '(elpy-rpc-python-command
-   "c:/Users/sebbe/AppData/Local/Programs/Python/Python39/python.exe")
- '(elpy-syntax-check-command "pycodestyle")
+ '(enable-recursive-minibuffers t)
  '(even-window-sizes 'width-only)
- '(exec-path
-   '("c:/Users/sebe/bin" "c:/Program Files/ImageMagick-7.1.0-Q16-HDRI" "C:/Program Files (x86)/VMware/VMware Workstation/bin/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/libs/" "C:/Emacs/emacs-28.1/bin" "C:/Program Files (x86)/Plantronics/Spokes3G/" "C:/Program Files/iperf-3.1.3-win64" "C:/WINDOWS/system32/config/systemprofile/scripts" "C:/WINDOWS/system32/config/systemprofile/bin" "C:/Program Files/gs/gs10.00.0/bin" "C:/Program Files/Git/cmd" "C:/Program Files/Git/usr/bin" "C:/WINDOWS/system32" "C:/WINDOWS" "C:/WINDOWS/System32/Wbem" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Program Files (x86)/CMake/bin" "C:/Program Files/Git/mingw64/bin" "C:/Program Files/nodejs/" "C:/WINDOWS/System32/WindowsPowerShell/v1.0/" "C:/Program Files/Microsoft VS Code/bin" "C:/Program Files/PowerShell/7/" "C:/Users/sebe/AppData/Local/glo668wb/bin" "C:/Program Files/doxygen/bin" "C:/Program Files (x86)/GNU Tools ARM Embedded/4.9 2015q2/bin" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/Scripts/" "C:/Users/sebe/AppData/Local/Programs/Python/Python38/" "C:/Program Files/Python/Python310/Scripts/" "C:/Program Files/Python/Python310/" "C:/Users/sebe/AppData/Local/Programs/Python/Launcher/" "C:/Users/sebe/AppData/Local/Microsoft/WindowsApps" "C:/Users/sebe/AppData/Local/Programs/MiKTeX/miktex/bin/x64/" "C:/Program Files (x86)/Nmap" "C:/Users/sebe/AppData/Roaming/npm" "c:/Emacs/emacs-28.1/libexec/emacs/28.1/x86_64-w64-mingw32"))
  '(flycheck-check-syntax-automatically '(save mode-enabled))
  '(flycheck-mode-line '(:eval (nil)))
- '(fringe-mode 0 nil (fringe))
- '(global-display-line-numbers-mode t)
- '(global-whitespace-mode t)
  '(google-translate-default-target-language "sv")
+ '(helm-M-x-always-save-history t)
+ '(helm-buffer-max-length 30)
  '(helm-candidate-separator "--------------------------------------")
- '(helm-gtags-auto-update t)
  '(helm-minibuffer-history-mode t)
  '(helm-mode t)
+ '(helm-move-to-line-cycle-in-source nil)
  '(ibuffer-saved-filter-groups '(("no-helm" ("no-helm" (not name . "\\*helm")))))
  '(ibuffer-saved-filters
    '(("programming"
@@ -1622,20 +1689,33 @@ Read Info node `(elisp) Pixel Specification'.")
  '(inhibit-startup-screen t)
  '(ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe")
  '(kill-buffer-delete-auto-save-files t)
- '(line-spacing 0.2)
+ '(line-spacing 0.1)
  '(lsp-auto-guess-root t)
- '(lsp-clangd-binary-path "/usr/bin/clangd")
+ '(lsp-clangd-binary-path "clangd")
  '(lsp-clangd-version "11.0.0")
  '(lsp-clients-clangd-args '("--header-insertion-decorators=0" "--log=verbose"))
- '(lsp-clients-clangd-executable "/usr/bin/clangd")
+ '(lsp-clients-clangd-executable "clangd")
  '(lsp-idle-delay 0.0)
+ '(lsp-pylsp-plugins-mccabe-enabled nil)
+ '(lsp-pylsp-plugins-pycodestyle-enabled t)
+ '(lsp-pylsp-plugins-pydocstyle-enabled nil)
+ '(minibuffer-electric-default-mode t)
  '(org-agenda-loop-over-headlines-in-active-region nil)
+ '(org-agenda-skip-scheduled-if-deadline-is-shown 'not-today)
  '(org-goto-interface 'outline-path-completion)
  '(org-hide-emphasis-markers t)
+ '(org-jira-custom-jqls
+   '((:jql "project in (AWIRT, A7750, A7739, GPDEV, 7750-R2D2-WEB, A7757) ORDER BY updated DESC, created DESC" :limit 100 :filename "the-jira-digest")))
+ '(org-jira-default-jql
+   "assignee = currentUser() and resolution = unresolved ORDER BY\12  priority DESC, created ASC")
+ '(org-jira-use-status-as-todo t)
  '(org-outline-path-complete-in-steps nil)
+ '(outline-minor-mode-cycle t)
  '(outline-minor-mode-prefix [3 0])
  '(package-selected-packages
-   '(unicode-fonts yasnippet-snippets helm-projectile avy use-package pulsar helm-lsp lsp-mode elpy projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
+   '(unicode-fonts yasnippet-snippets helm-projectile avy use-package pulsar helm-lsp lsp-mode projectile-ripgrep light-mode flycheck persp-projectile general company-jedi helm-tramp py-autopep8 olivetti projectile perspective magit god-mode pipenv helm auctex))
+ '(persp-show-modestring nil)
+ '(persp-state-default-file "~/.emacs.d/.perspective")
  '(projectile-dynamic-mode-line nil)
  '(projectile-enable-cmake-presets t)
  '(projectile-git-submodule-command "nil")
@@ -1645,9 +1725,33 @@ Read Info node `(elisp) Pixel Specification'.")
  '(projectile-switch-project-action 'projectile-dired)
  '(projectile-track-known-projects-automatically nil)
  '(python-check-command "pyflakes.exe")
+ '(python-fill-docstring-style 'symmetric)
  '(python-skeleton-autoinsert t)
+ '(recenter-positions '(top middle bottom))
+ '(request-backend 'url-retrieve)
  '(safe-local-variable-values
-   '((projectile-indexing-method . hybrid)
+   '((projectile-project-compilation-cmd . "./wireless-build.sh")
+     (projectile-project-compilation-cmd . "python build.py")
+     (auto-fill-mode)
+     (org-todo-keyword-faces
+      '(("TODO" . org-todo)
+        ("IN-PROGRESS" . org-in-progress)
+        ("IN-REVIEW" . org-scheduled)
+        ("BLOCKED" . org-block)
+        ("DONE" . org-done)))
+     (org-todo-keywords quote
+                        ((sequence "TODO" "IN-PROGRESS" "IN-REVIEW" "BLOCKED" "|" "DONE")))
+     (org-todo-keywords
+      (sequence "TODO" "IN-PROGRESS" "IN-REVIEW")
+      (sequence "BLOCKED" "DONE"))
+     (org-todo-keywords
+      (sequence "TODO" "IN-PROGRESS" "IN-REVIEW")
+      ("BLOCKED" "DONE"))
+     (org-todo-keywords quote
+                        ((sequence "TODO" "IN-PROGRESS" "IN-REVIEW" "BLOCKED" "DONE")))
+     (org-goto-max-level . 3)
+     (org-jira-mode . t)
+     (projectile-indexing-method . hybrid)
      (projectile-indexing-method quote hybrid)
      (org-goto-max-level . 2)
      (org-todo-keywords
@@ -1655,13 +1759,14 @@ Read Info node `(elisp) Pixel Specification'.")
      (org-todo-keywords quote
                         ((sequence "TODO" "IN-PROGRESS" "|" "DONE")))))
  '(same-window-buffer-names '("*Help*" "*info*" "*compilation*" "*eww*" "*Occur*"))
- '(scroll-margin 5)
+ '(shell-command-prompt-show-cwd t)
  '(show-paren-mode t)
  '(smerge-command-prefix "\33")
  '(split-height-threshold nil)
  '(split-width-threshold 140)
  '(switch-to-prev-buffer-skip-regexp '("^\\*"))
  '(truncate-lines t)
+ '(vc-git-log-switches "--all")
  '(whitespace-global-modes '(prog-mode))
  '(whitespace-style
    '(face trailing spaces missing-newline-at-eof empty space-before-tab::tab space-before-tab space-mark tab-mark))
@@ -1669,58 +1774,3 @@ Read Info node `(elisp) Pixel Specification'.")
  '(window-divider-default-right-width 15)
  '(window-divider-mode t)
  '(window-min-width 70))
-
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :extend nil :stipple nil :background "black" :foreground "LightSkyBlue4" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 105 :width normal :foundry "outline" :family "Consolas"))))
- '(company-tooltip ((t (:background "black"))))
- '(compilation-info ((t (:foreground "LightPink4" :weight bold))))
- '(compilation-warning ((t (:foreground "Orange4" :weight bold))))
- '(cursor ((t (:background "lavender"))))
- '(custom-button ((t (:background "seashell" :foreground "black" :box (:line-width (2 . 2) :style pressed-button)))))
- '(diff-header ((t (:inherit diff-file-header :extend t :weight normal))))
- '(diff-refine-added ((t (:background "dark green" :inherit diff-refine-changed))))
- '(diff-refine-removed ((t (:inherit diff-refine-changed :background "dark red"))))
- '(font-latex-sectioning-5-face ((t (:inherit variable-pitch :foreground "yellow4" :weight bold))))
- '(font-lock-comment-delimiter-face ((t (:foreground "dark sea green"))))
- '(font-lock-comment-face ((t (:foreground "peach puff" :slant oblique))))
- '(font-lock-constant-face ((t (:foreground "SkyBlue1" :weight bold))))
- '(font-lock-doc-face ((t (:foreground "spring green" :slant oblique))))
- '(font-lock-function-call-face ((t (:inherit font-lock-function-name-face :weight bold))))
- '(font-lock-function-name-face ((t (:foreground "light blue" :weight bold))))
- '(font-lock-keyword-face ((t (:foreground "cyan3"))))
- '(font-lock-string-face ((t (:foreground "lavender"))))
- '(font-lock-type-face ((t (:foreground "light steel blue" :slant italic))))
- '(fringe ((t (:inherit default :background "black"))))
- '(helm-candidate-number ((t (:extend t :background "dark slate blue" :foreground "black"))))
- '(helm-match ((t (:extend t :foreground "light cyan"))))
- '(helm-selection ((t (:extend t :distant-foreground "black" :box (:line-width (2 . 2) :color "grey75" :style released-button) :weight bold))))
- '(helm-source-header ((t (:extend t :background "#22083397778B" :foreground "white" :weight bold :family "Sans Serif"))))
- '(hi-yellow ((t (:background "orange4" :foreground "black"))))
- '(mode-line ((t (:foreground "cadet blue" :height 1.0))))
- '(mode-line-active ((t (:inherit mode-line :background "grey15" :box (:line-width (1 . 5) :color "grey15" :style flat-button)))))
- '(mode-line-highlight ((t (:box (:line-width (2 . 2) :color "grey40" :style released-button)))))
- '(mode-line-inactive ((t (:background "grey8" :foreground "grey50" :box (:line-width (2 . 5) :color "grey8" :style flat-button) :weight light :height 1.0))))
- '(org-level-1 ((t (:extend t :foreground "deep sky blue" :weight bold))))
- '(org-level-2 ((t (:inherit org-level-1 :extend nil :foreground "dodger blue"))))
- '(org-level-3 ((t (:inherit org-level-1 :extend nil :foreground "royal blue"))))
- '(org-level-4 ((t (:inherit org-level-1 :extend nil :foreground "slate blue"))))
- '(org-mode-line-clock ((t (:foreground "medium sea green" :underline t))))
- '(persp-selected-face ((t (:inherit font-lock-constant-face :weight normal))))
- '(region ((t (:extend t :background "purple4"))))
- '(whitespace-empty ((t (:extend t :background "grey80" :foreground "firebrick"))))
- '(whitespace-hspace ((t (:inherit default :foreground "grey20"))))
- '(whitespace-indentation ((t (:background "light yellow" :foreground "firebrick"))))
- '(whitespace-space ((t (:inherit whitespace-hspace))))
- '(widget-field ((t (:background "gray15"))))
- '(window-divider ((t (:foreground "black"))))
- '(window-divider-first-pixel ((t (:inherit window-divider))))
- '(window-divider-last-pixel ((t (:inherit window-divider)))))
-
-(put 'dired-find-alternate-file 'disabled nil)
-(put 'upcase-region 'disabled nil)
-(put 'narrow-to-page 'disabled nil)
-(put 'narrow-to-region 'disabled nil)
