@@ -499,11 +499,6 @@ god-mode if that is the case"
 
 ;; PATH modifictaions ==========================================================
 
-(cond
- ((string= (system-name) "LT-JRW6NN3")
-  (setq explicit-shell-file-name "bash")
-  (setq shell-file-name explicit-shell-file-name)))
-
 ;; COMPLETION SYSTEM
 ;; Might need to comment this out, as the setup is not done
 
@@ -596,14 +591,6 @@ god-mode if that is the case"
 (use-package cmake-ts-mode
   :mode "\\CMake\\'")
 
-;; Indentation
-(setq standard-indent 2)
-(setq sh-basic-offset 2)
-(setq c-basic-offset 2)
-(setq-default tab-width 2)
-(setq-default indent-tabs-mode nil)
-(setq tab-stop-list '(2 4 6))
-
 (use-package smart-tabs-mode
   :ensure t
   :hook
@@ -615,133 +602,6 @@ god-mode if that is the case"
   (smart-tabs-add-language-support c-ts c-ts-mode-hook
     ((c-indent-line-or-region . c-basic-offset)))
   (smart-tabs-insinuate 'c-ts 'c++-ts))
-
-;; Long line behaviour
-(set-default 'truncate-lines t)
-
-;; UI appearance
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(menu-bar-mode 0)
-(display-time-mode 0)
-
-;; Only show line numbers for derivatives of prog-mode
-(add-hook 'prog-mode-hook (lambda ()
-                            (display-line-numbers-mode 1)))
-;; Add margins for text mode
-(add-hook 'text-mode-hook (lambda ()
-                            (setq left-margin-width 3)))
-
-;; Display time on mode line
-(setq display-time-24hr-format t)
-(display-time-mode t)
-
-;; Window management =================================================
-
-(defun setup-display-buffer-base-action (frame)
-  "Set the default way that windows open based on the proportions
-for the screen
-
-If the workarea is wider than it is high, then open to the right,
-else below. Takes the frame to change as argument
-"
-  (let ((current_direction (if (>
-                                (frame-outer-width frame)
-                                (frame-outer-height frame))
-                               (quote right)
-                             (quote bottom))))
-    (setq
-     display-buffer-base-action
-     `((display-buffer-reuse-mode-window
-        display-buffer-reuse-window
-        display-buffer-in-direction)
-       (reusable-frames . t)
-       (mode Info-mode
-             dired-mode
-             compilation-mode
-             help-mode)
-       (direction . ,current_direction)))))
-
-(add-hook 'window-size-change-functions 'setup-display-buffer-base-action)
-
-(defun toggle-window-split ()
-  (interactive)
-  (if (= (count-windows) 2)
-      (let* ((this-win-buffer (window-buffer))
-             (next-win-buffer (window-buffer (next-window)))
-             (this-win-edges (window-edges (selected-window)))
-             (next-win-edges (window-edges (next-window)))
-             (this-win-2nd (not (and (<= (car this-win-edges)
-                                         (car next-win-edges))
-                                     (<= (cadr this-win-edges)
-                                         (cadr next-win-edges)))))
-             (splitter
-              (if (= (car this-win-edges)
-                     (car (window-edges (next-window))))
-                  'split-window-horizontally
-                'split-window-vertically)))
-        (delete-other-windows)
-        (let ((first-win (selected-window)))
-          (funcall splitter)
-          (if this-win-2nd (other-window 1))
-          (set-window-buffer (selected-window) this-win-buffer)
-          (set-window-buffer (next-window) next-win-buffer)
-          (select-window first-win)
-          (if this-win-2nd (other-window 1))))))
-
-(defun prev-window ()
-  (interactive nil)
-  (other-window -1))
-
-(setq window-min-height 10)
-(setq window-min-width 80)
-
-;; version control helper ============================================
-
-(defun revert-all-file-buffers ()
-  "Refresh all open file buffers without confirmation.
-Buffers in modified (not yet saved) state in emacs will not be reverted. They
-will be reverted though if they were modified outside emacs.
-Buffers visiting files which do not exist any more or are no longer readable
-will be killed."
-  (interactive)
-  (dolist (buf (buffer-list))
-    (let ((filename (buffer-file-name buf)))
-      ;; Revert only buffers containing files, which are not modified
-      ;; do not try to revert non-file buffers like *Messages*.
-      (when (and filename
-                 (not (buffer-modified-p buf)))
-        (if (file-readable-p filename)
-            ;; If the file exists and is readable, revert the buffer.
-            (with-current-buffer buf
-              (revert-buffer :ignore-auto :noconfirm :preserve-modes))
-          ;; Otherwise, kill the buffer.
-          (let (kill-buffer-query-functions) ; No query done when killing buffer
-            (kill-buffer buf)
-            (message "Killed non-existing/unreadable file buffer: %s" filename))))))
-  (message "Finished reverting buffers containing unmodified files."))
-
-;; ====== HOTKEYS ====================================================
-
-(defun replicate-line (&optional number-of-yanks)
-  "Kill a whole line from anywhere in it then yank it `number-of-yanks' times"
-  ;; Getting the arguments in line
-  (interactive "^p")
-
-  ;; Killing a line and yanking it according to arguments
-  (kill-whole-line 0)
-  (dotimes (i number-of-yanks)
-    (yank)
-    (newline))
-  (yank))
-
-;; Electric pairing (parenthesis, brackets etc)
-(setq electric-pairs '((?\( . ?\))
-                       (?\[ . ?\])
-                       (?\{ . ?\})
-                       (?\" . ?\")
-                       (?\' . ?\')))
-(electric-pair-mode t)
 
 ;; ================= MODE SPECIFICS ============================================
 
@@ -1148,13 +1008,6 @@ Take-aways: %?")
   ("\\.sh\\'" . bash-ts-mode))
 
 ;; Matlab/octave mode ==========================================================
-(add-to-list 'auto-mode-alist '("\\.m\\'" . octave-mode))
-
-
-;; Compilation mode ============================================================
-(add-hook 'compilation-mode-hook (lambda()
-                                   (visual-line-mode t)))
-
 (use-package combobulate
   ;; Checking out doesn't work for some reason, there seems to something that
   ;; just doesn't work. I managed to fix it manually though
@@ -1183,6 +1036,12 @@ Take-aways: %?")
   (which-key-idle-delay 2.5)
   :config
   (which-key-mode 1))
+
+;; Check if on the work laptop
+(cond
+ ((string= (system-name) "LT-JRW6NN3")
+  (setq explicit-shell-file-name "bash")
+  (setq shell-file-name explicit-shell-file-name)))
 
 (defun next-double-window ()
   (interactive nil)
@@ -1230,6 +1089,143 @@ Take-aways: %?")
 (setq backup-directory-alist `(("." . "~/.saves")))
 
 ;; ================= MODELINE MANAGEMENT =======================================
+
+;; Indentation
+(setq standard-indent 2)
+(setq sh-basic-offset 2)
+(setq c-basic-offset 2)
+(setq-default tab-width 2)
+(setq-default indent-tabs-mode nil)
+(setq tab-stop-list '(2 4 6))
+;; Long line behaviour
+(set-default 'truncate-lines t)
+
+;; UI appearance
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(menu-bar-mode 0)
+(display-time-mode 0)
+
+;; Only show line numbers for derivatives of prog-mode
+(setq display-time-24hr-format t)
+(display-time-mode t)
+
+;; Window management =================================================
+
+(defun setup-display-buffer-base-action (frame)
+  "Set the default way that windows open based on the proportions
+for the screen
+
+If the workarea is wider than it is high, then open to the right,
+else below. Takes the frame to change as argument
+"
+  (let ((current_direction (if (>
+                                (frame-outer-width frame)
+                                (frame-outer-height frame))
+                               (quote right)
+                             (quote bottom))))
+    (setq
+     display-buffer-base-action
+     `((display-buffer-reuse-mode-window
+        display-buffer-reuse-window
+        display-buffer-in-direction)
+       (reusable-frames . t)
+       (mode Info-mode
+             dired-mode
+             compilation-mode
+             help-mode)
+       (direction . ,current_direction)))))
+
+(defun toggle-window-split ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let* ((this-win-buffer (window-buffer))
+             (next-win-buffer (window-buffer (next-window)))
+             (this-win-edges (window-edges (selected-window)))
+             (next-win-edges (window-edges (next-window)))
+             (this-win-2nd (not (and (<= (car this-win-edges)
+                                         (car next-win-edges))
+                                     (<= (cadr this-win-edges)
+                                         (cadr next-win-edges)))))
+             (splitter
+              (if (= (car this-win-edges)
+                     (car (window-edges (next-window))))
+                  'split-window-horizontally
+                'split-window-vertically)))
+        (delete-other-windows)
+        (let ((first-win (selected-window)))
+          (funcall splitter)
+          (if this-win-2nd (other-window 1))
+          (set-window-buffer (selected-window) this-win-buffer)
+          (set-window-buffer (next-window) next-win-buffer)
+          (select-window first-win)
+          (if this-win-2nd (other-window 1))))))
+
+(defun prev-window ()
+  (interactive nil)
+  (other-window -1))
+
+(setq window-min-height 10)
+(setq window-min-width 80)
+
+;; version control helper ============================================
+
+(defun revert-all-file-buffers ()
+  "Refresh all open file buffers without confirmation.
+Buffers in modified (not yet saved) state in emacs will not be reverted. They
+will be reverted though if they were modified outside emacs.
+Buffers visiting files which do not exist any more or are no longer readable
+will be killed."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (let ((filename (buffer-file-name buf)))
+      ;; Revert only buffers containing files, which are not modified
+      ;; do not try to revert non-file buffers like *Messages*.
+      (when (and filename
+                 (not (buffer-modified-p buf)))
+        (if (file-readable-p filename)
+            ;; If the file exists and is readable, revert the buffer.
+            (with-current-buffer buf
+              (revert-buffer :ignore-auto :noconfirm :preserve-modes))
+          ;; Otherwise, kill the buffer.
+          (let (kill-buffer-query-functions) ; No query done when killing buffer
+            (kill-buffer buf)
+            (message "Killed non-existing/unreadable file buffer: %s" filename))))))
+  (message "Finished reverting buffers containing unmodified files."))
+
+;; ====== HOTKEYS ====================================================
+
+(defun replicate-line (&optional number-of-yanks)
+  "Kill a whole line from anywhere in it then yank it `number-of-yanks' times"
+  ;; Getting the arguments in line
+  (interactive "^p")
+
+  ;; Killing a line and yanking it according to arguments
+  (kill-whole-line 0)
+  (dotimes (i number-of-yanks)
+    (yank)
+    (newline))
+  (yank))
+
+;; Electric pairing (parenthesis, brackets etc)
+(setq electric-pairs '((?\( . ?\))
+                       (?\[ . ?\])
+                       (?\{ . ?\})
+                       (?\" . ?\")
+                       (?\' . ?\')))
+(electric-pair-mode t)
+(add-hook 'prog-mode-hook (lambda ()
+                            (display-line-numbers-mode 1)))
+;; Add margins for text mode
+(add-hook 'text-mode-hook (lambda ()
+                            (setq left-margin-width 3)))
+
+;; Display time on mode line
+(add-hook 'compilation-mode-hook (lambda()
+                                   (visual-line-mode t)))
+(add-hook 'window-size-change-functions 'setup-display-buffer-base-action)
+
+
 
 (defface sen-modeline-remote-indicator
   '((default :inherit bold)
