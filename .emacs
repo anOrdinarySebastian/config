@@ -1,3 +1,5 @@
+;; -*- eval: (outline-minor-mode); eval: (outline-show-only-headings)-*-*
+
 (package-initialize)
 
 (require 'package)
