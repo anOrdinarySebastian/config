@@ -313,10 +313,13 @@ The app is chosen from your OS's preference."
     :prefix sebe/copilot-follow-key)
 
   (general-define-key
+   "C-S-N" 'scroll-up-line
+   "C-S-P" 'scroll-down-line
    "M-x" 'helm-M-x
    "M-i" 'god-mode-all
    "C-M-i" 'helm-company
    "C-M-S-O" 'join-line
+   "C-M-z" 'global-text-scale-adjust
    "TAB" 'indent-for-tab-command)
 
   (general-define-key
@@ -333,6 +336,9 @@ The app is chosen from your OS's preference."
    "O" 'other-frame
    "C-b" 'persp-ibuffer
    "b" 'helm-mini
+   "C-c" (lambda ()
+           (interactive )
+           (org-agenda nil "i"))
    "C-f" 'helm-find-files
    "C-n" (kbd "C-x C-<right>")
    "C-p" (kbd "C-x C-<left>")
@@ -340,17 +346,18 @@ The app is chosen from your OS's preference."
 
   (sebe/main-leader-definer
     "r" 'revert-buffer
+    "g" 'helm-ls-git
     "C-f" 'ffap
     "d l" 'kill-whole-line
     "C-d" 'define-it-at-point)
 
   (sebe/avy-leader-definer
-    "C-c" 'avy-goto-char-2
-    "C-w" 'avy-goto-word-1
-    "C-l" 'avy-goto-line
+    "C-w" 'avy-goto-char-timer
+    "C-l" 'sen/avy-goto-line
     "C-y" 'avy-copy-line
     "C-m" 'avy-move-line
-    "C-k" 'avy-kill-whole-line)
+    "C-k" 'avy-kill-whole-line
+    "C-e" 'avy-flycheck-goto-error)
 
   (sebe/mode-leader-definer
     "C-o" 'outline-minor-mode
@@ -377,15 +384,17 @@ The app is chosen from your OS's preference."
           (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
     "e" (lambda ()
           (interactive)
-          (find-file "~/.emacs")))
+          (find-file "~/.emacs"))
+    "j" (lambda ()
+          (interactive)
+          (find-file org-default-journal-file)))
 
   (sebe/window-follow-definer
     "s" 'toggle-window-split
     "f" 'fit-window-to-buffer)
 
   (sebe/projectile-follow-definer
-    "s" 'helm-projectile-switch-project
-    "f" 'helm-projectile-find-file
+    "f" 'helm-projectile
     "4 f" 'projectile-find-file-other-window
     "C-f" 'projectile-persp-switch-project
     "d" 'projectile-find-dir
@@ -395,20 +404,24 @@ The app is chosen from your OS's preference."
     "4 r" 'projectile-dired-other-window
     "g" 'helm-projectile-grep
     "t" 'projectile-test-project
-    "c" 'projectile-compile-project)
+    "c" 'projectile-compile-project
+    "b" 'helm-browse-project)
 
   (sebe/org-follow-definer
     "s" 'org-store-link
     "a" (lambda ()
           (interactive )
           (org-agenda nil "i"))
+    "j" 'org-jira-get-issues
+    "J" 'org-jira-get-issue
     "A" 'org-agenda
     "O" 'org-clock-out
     "g" 'org-clock-goto)
 
   (sebe/helm-follow-definer
     "g" 'helm-grep-do-git-grep
-    "o" 'helm-occur)
+    "o" 'helm-occur
+    "b" 'helm-bookmarks)
 
   (sebe/yas-follow-definer
     "n" 'yas-new-snippet
