@@ -280,7 +280,14 @@ god-mode if that is the case"
   (pulsar-global-mode))
 
 (use-package avy
-  :ensure t)
+  :ensure t
+  :config
+  (defun sen/avy-goto-line (&optional end-of-line)
+    "Use the universal arugment to go to beginning or end of line"
+    (interactive "P")
+    (if end-of-line
+        (avy-goto-end-of-line)
+      (avy-goto-line))))
 
 (use-package general
   :ensure t
