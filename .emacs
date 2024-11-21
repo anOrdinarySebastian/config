@@ -561,6 +561,11 @@ god-mode if that is the case"
   :custom
   (helm-gtags-auto-update t))
 
+(use-package helm-ls-git
+  :ensure t
+  :config
+  (setq helm-ls-git-branches-show-all t))
+
 (use-package company
   :ensure t
   :config
