@@ -839,15 +839,22 @@ SEQ may be an atom or a sequence."
   (org-use-speed-commands t)
   (org-clock-continuously nil)
   (org-capture-templates
-   '(("t" "Todo"
+   '(("t" "Todo")
+     ("tt" "New"
       entry
       (file+headline org-default-todo-file "Tasks")
       "* TODO %?\n  %i\n  %a")
+     ("te" "Edit"
+      plain
+      (file+function org-default-todo-file org-goto)
+      "%?\n  %i"
+      :empty-lines 1
+      :unnarrowed t)
 
      ("n" "Notes"
-      entry
+      plain
       (file+function org-default-notes-file org-goto)
-      "* %?")
+      "%?")
 
      ("c" "Clocking"
       plain
@@ -867,26 +874,24 @@ SEQ may be an atom or a sequence."
      ("jq" "Quit day"
       entry
       (file+olp+datetree org-default-journal-file)
-      (function journal-quit-template)
-      :immediate-finish t
-      :before-finalize
-      (lambda ()
-        "Check if clock is running, clock out if it is"
-        (if (org-clock-is-active)
-            (org-clock-out))))
+      "* [%<%H:%M>] Quit\n%(journal-quit-report)"
+      :immediate-finish t)
 
      ("jp" "Pause"
       entry
       (file+olp+datetree org-default-journal-file)
       "* [%<%H:%M>] Paused\nGoing for %?"
-      :clock-in t)
+      :clock-in t
+      :after-finalize (lambda ()
+                        (interactive )
+                        (org-agenda nil "i")))
 
      ("jl" "General Log"
       entry
       (file+olp+datetree org-default-journal-file)
       (function general-log-template))
 
-     ("jm" "Meeting "
+     ("jm" "Meeting"
       entry
       (file+olp+datetree org-default-journal-file)
       "* [%<%H:%M>][%^{Minutes}m] %?meeting\n%^{TOPIC}p%^{PROJECT}p")
@@ -936,18 +941,21 @@ SEQ may be an atom or a sequence."
 Checklist
 - [ ] Set location%?
 - [ ] Report time
-- [ ] News
+- [ ] [[https://hms365.sharepoint.com/sites/HMSstart/SitePages/All-news.aspx][News]]
 - [ ] Mail/Meetings
-- [ ] Agenda
 - [ ] Jenkins
 - [ ] [[https://hms-networks.atlassian.net/issues/?filter=10331][Jira]]
-- [-] Gerrit")
+- [-] [[https://review.hms.se/r/dashboard/self][Gerrit]]
+- [ ] Agenda")
 
-  (defun journal-quit-template ()
-    "Print the clock report from the jira directory and quit"
-    (let* ((org-files (directory-files org-default-jira-files t "^A[0-9]\\{4\\}\\.org$"))
-           (org-clock-clocktable-default-properties `(:maxlevel 3 :block yesterday :scope ,org-files)))
-      "* [%<%H:%M>] Quit\n%(org-clock-report)"))
+  (defun journal-quit-report ()
+    "Check if clock is running, clock out if it is and then print the
+clock report from the agenda files and quit"
+    (if (org-clock-is-active)
+        (org-clock-out))
+    (let* ((org-clock-clocktable-default-properties
+            '(:scope agenda :maxlevel 4 :block today :properties ("PROJECT") :fileskip0 t)))
+      (org-clock-report)))
 
   (defun general-log-template ()
     "Prompt for a log message and a project to report time on.
@@ -995,7 +1003,6 @@ Take-aways: %?")
                        ((org-agenda-overriding-header "Stealth backlog Bolt II")))
             (tags-todo "-{bolt.*}"
                        ((org-agenda-overriding-header "Everything else")))))))
-
 
   (defun org-add-electric-pairs ()
     (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
