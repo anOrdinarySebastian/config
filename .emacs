@@ -81,6 +81,8 @@ The app is chosen from your OS's preference."
   :hook
   (vc-git-log-edit-mode . auto-fill-mode)
   (vc-git-log-edit-mode . flyspell-mode)
+  (vc-git-log-edit-mode . (lambda ()
+                            (god-local-mode -1)))
   :defines
   vc-fileset
   vc-dir-mode-map
@@ -89,6 +91,10 @@ The app is chosen from your OS's preference."
   my-vc-git-command
   vc-dir-hide-up-to-date
   vc-dir-refresh
+  log-view-msg-prev
+  :init
+  (unless (boundp 'vc-fileset)
+    (setq vc-fileset nil))
   :config
   (defun my-vc-git-command (verb fn)
     (let* ((fileset-arg (or vc-fileset (vc-deduce-fileset nil t)))
@@ -122,6 +128,11 @@ The app is chosen from your OS's preference."
            (format "--fixup=%s" (sen/log-view-hash-on-line))))
       (vc-git-command nil 0 nil  "commit" fixup-switch)))
 
+  (defun sen/vc-git-cherry-pick ()
+    "Cherry pick the commit under point"
+    (interactive)
+      (vc-git-command nil 0 nil  "cherry-pick" (sen/log-view-hash-on-line)))
+
   (defun sen/vc-git-checkout ()
     "Check out the commit under point"
     (interactive)
@@ -134,6 +145,13 @@ The app is chosen from your OS's preference."
     (my-vc-git-command
      "Pushed to Gerrit"
      (lambda (files) (vc-git-command nil 0 files "push" "origin" "HEAD:refs/for/master"))))
+
+  (defun sen/vc-git-fetch-all ()
+    "Run the command 'git fetch --all'"
+    (interactive)
+    (my-vc-git-command
+     "Fetching --all"
+     (lambda (files) (vc-git-command nil 0 nil "fetch" "--all"))))
 
   (defun my-vc-git-add (&optional revision vc-fileset comment)
     (interactive "P")
@@ -149,7 +167,9 @@ The app is chosen from your OS's preference."
   :bind
   (:map vc-git-log-view-mode-map
         ("F" . 'sen/vc-git-fixup)
-        ("C" . 'sen/vc-git-checkout))
+        ("f" . 'sen/vc-git-fetch-all)
+        ("C" . 'sen/vc-git-checkout)
+        ("P" . 'sen/vc-git-cherry-pick))
   (:map vc-dir-mode-map
         ("P" . sen/vc-git-push-gerrit))
   :custom
