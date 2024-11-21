@@ -241,6 +241,14 @@ The app is chosen from your OS's preference."
     (setq idle-timer-god-mode-timer nil))
 
   :config
+  (defun sebe/god-mode-pause-in-comment-region ()
+    "Try to find out if point is within a comment region and disable
+god-mode if that is the case"
+    (unless (window-minibuffer-p)
+     (if (nth 4 (syntax-ppss))
+         (god-local-mode-pause)
+       (god-local-mode-resume))))
+
   (defun sebe/god-mode-insert-at-point (comment text)
     "Insert some text without exiting god mode"
     (interactive "P\nMText to insert: ")
@@ -256,6 +264,7 @@ The app is chosen from your OS's preference."
       (god-local-mode-resume)))
 
   (add-hook 'overwrite-mode-hook 'sebe/god-mode-toggle-on-overwrite)
+  (add-hook 'post-command-hook #'sebe/god-mode-pause-in-comment-region)
   (setq god-mode-enable-function-key-translation nil)
   (add-to-list 'god-exempt-major-modes 'diff-mode)
   (general-define-key "SPC" (general-key-dispatch 'self-insert-command
