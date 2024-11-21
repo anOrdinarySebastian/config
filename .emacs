@@ -802,9 +802,11 @@ SEQ may be an atom or a sequence."
    ((string= (system-name) "LT-JRW6NN3")
     (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe"))))
 
-(use-package flymake-shellcheck
-  :commands flymake-shellcheck-load
-  :hook (bash-ts-mode-hook . flymake-shellcheck-load))
+(use-package flycheck
+  :ensure t
+  :hook
+  (python-ts-mode . flycheck-mode)
+  (bash-ts-mode . flycheck-mode))
 
 
 ;; Org mode ====================================================================
