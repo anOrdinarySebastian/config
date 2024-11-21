@@ -1255,7 +1255,12 @@ Take-aways: %?")
 
 (defface sen-modeline-narrow
   '((t :foreground "white"))
-  "Face for modal mode indicator."
+  "Face for narrow mode indicator."
+  :group 'sen-modeline-faces)
+
+(defface sen-modeline-warning
+  '((t :background "red" :foreground "lemon chiffon"))
+  "Face for warning indication."
   :group 'sen-modeline-faces)
 
 (defvar-local sen-modeline-remote
@@ -1287,7 +1292,9 @@ Take-aways: %?")
 
 (defun sen-modeline-major-mode-name ()
   "Return capitalized `major-mode' without the -mode suffix."
-  (capitalize (string-replace "-mode" "" (symbol-name major-mode))))
+  (propertize
+   (capitalize (string-replace "-mode" "" (symbol-name major-mode)))
+   'face 'italic))
 
 (defvar-local sen-modeline-major-mode
     '(:eval (sen-modeline-major-mode-name))
@@ -1298,13 +1305,29 @@ as a string")
   "If applicable, return the git branch of the currently visited file"
   (let ((git-ref (vc-git--symbolic-ref file)))
     (if git-ref
-        (concat git-ref ":"))))
+        (concat
+         (if smerge-mode
+             "!")
+         (if (not (vc-up-to-date-p file))
+             (propertize git-ref 'face 'vc-dir-status-edited)
+           git-ref)
+         ":"))))
 
 (defvar-local sen-modeline-git-branch
     '(:eval
       (when (mode-line-window-selected-p)
         (sen-modeline-get-git-branch (buffer-name))))
   "Variable containing the branch of the currently visited buffer")
+
+(defun sen-modeline-get-perspective-text ()
+  "Return the name of the perspective, colorize if it differs from
+the project root
+
+This will be helpful when browsing files with similar names that
+exist in different repositories"
+  ;; Compare `projectile-project-root' to `persp-current-name'
+  ;; If they aren't the same then color the text red)
+  )
 
 (defvar-local sen-modeline-perspective
     '(:eval
