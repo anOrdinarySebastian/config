@@ -537,17 +537,18 @@ god-mode if that is the case"
   :ensure t
   :defer t
   :functions
-  helm-gtags-dwim
-  helm-gtags-pop-stack
-  helm-gtags-previous-history
-  helm-gtags-next-history
+  helm-gtags-select
+  ;; helm-gtags-dwim
+  ;; helm-gtags-pop-stack
+  ;; helm-gtags-previous-history
+  ;; helm-gtags-next-history
   :bind
   (:map helm-gtags-mode-map
-        ("M-."   . 'helm-gtags-dwim)
-        ("M-,"   . 'helm-gtags-pop-stack)
-        ("M-å"   . 'helm-gtags-select)
-        ("C-c <" . 'helm-gtags-previous-history)
-        ("C-c >" . 'helm-gtags-next-history))
+        ;; ("M-."   . 'helm-gtags-dwim)
+        ;; ("M-,"   . 'helm-gtags-pop-stack)
+        ("M-å"   . 'helm-gtags-select))
+        ;; ("C-c <" . 'helm-gtags-previous-history)
+        ;; ("C-c >" . 'helm-gtags-next-history))
   :hook
   (c-mode          . helm-gtags-mode)
   (c-ts-mode       . helm-gtags-mode)
@@ -556,6 +557,7 @@ god-mode if that is the case"
   (asm-mode        . helm-gtags-mode)
   (bash-ts-mode    . helm-gtags-mode)
   (emacs-lisp-mode . helm-gtags-mode)
+  (python-ts-mode  . helm-gtags-mode)
   :custom
   (helm-gtags-auto-update t))
 
