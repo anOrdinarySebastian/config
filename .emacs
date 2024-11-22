@@ -739,7 +739,10 @@ SEQ may be an atom or a sequence."
       (file+olp+datetree org-default-journal-file)
       (function start-day-template)
       :clock-in t
-      :unnarrowed t)
+      :unnarrowed t
+      :after-finalize (lambda ()
+                        (interactive )
+                        (org-agenda nil "i")))
 
      ("jq" "Quit day"
       entry
@@ -815,8 +818,7 @@ Checklist
 - [ ] Mail/Meetings
 - [ ] Jenkins
 - [ ] [[https://hms-networks.atlassian.net/issues/?filter=10331][Jira]]
-- [-] [[https://review.hms.se/r/dashboard/self][Gerrit]]
-- [ ] Agenda")
+- [-] [[https://review.hms.se/r/dashboard/self][Gerrit]]")
 
   (defun journal-quit-report ()
     "Check if clock is running, clock out if it is and then print the
