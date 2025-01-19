@@ -300,7 +300,6 @@ god-mode if that is the case"
 
 (use-package general
   :ensure t
-  :after copilot
   :defines
   sebe/main-leader-key
   sebe/math-leader-key
@@ -317,7 +316,6 @@ god-mode if that is the case"
   sebe/helm-follow-definer
   sebe/org-follow-definer
   sebe/yas-follow-definer
-  sebe/copilot-follow-definer
   :config
   (defconst sebe/main-leader-key "C-.")
   (defconst sebe/avy-leader-key "C-ö")
@@ -330,7 +328,6 @@ god-mode if that is the case"
   (defconst sebe/org-follow-key (concat sebe/main-leader-key " o"))
   (defconst sebe/helm-follow-key (concat sebe/main-leader-key " h"))
   (defconst sebe/yas-follow-key (concat sebe/main-leader-key " y"))
-  (defconst sebe/copilot-follow-key (concat sebe/main-leader-key " c"))
   (general-create-definer sebe/main-leader-definer
     :prefix sebe/main-leader-key)
   (general-create-definer sebe/avy-leader-definer
@@ -354,8 +351,6 @@ god-mode if that is the case"
     :prefix sebe/helm-follow-key)
   (general-create-definer sebe/yas-follow-definer
     :prefix sebe/yas-follow-key)
-  (general-create-definer sebe/copilot-follow-definer
-    :prefix sebe/copilot-follow-key)
 
   (general-define-key
    "C-S-N" 'scroll-up-line
@@ -471,13 +466,7 @@ god-mode if that is the case"
   (sebe/yas-follow-definer
     "n" 'yas-new-snippet
     "i" 'yas-insert-snippet
-    "v" 'yas-visit-snippet-file)
-
-  (sebe/copilot-follow-definer
-    :keymaps 'copilot-mode-map
-    "c" 'copilot-complete
-    "p"  'copilot-panel-complete
-    "n"  'copilot-next-completion))
+    "v" 'yas-visit-snippet-file))
 
 (use-package perspective
   :ensure t
@@ -510,17 +499,30 @@ god-mode if that is the case"
 ;; Might need to comment this out, as the setup is not done
 
 (use-package copilot
+  ;; Only install copilot if running on work PC
+  :if (string= (system-name) sen/work-computer-system-name)
+  :after general
+  :defines
+  sebe/copilot-follow-definer
+  :ensure nil
   ;; Repo link https://github.com/zerolfx/copilot.el
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist"
                                                              "*.el"))
-  :demand t
-  :ensure nil
   :functions
   copilot--overlay-visible
   copilot-accept-completion
   :config
-  (general-define-key "TAB" (general-predicate-dispatch 'indent-for-tab-command
-                              (copilot--overlay-visible) 'copilot-accept-completion))
+  (defconst sebe/copilot-follow-key
+    (concat sebe/main-leader-key " c"))
+  (general-create-definer sebe/copilot-follow-definer
+    :prefix sebe/copilot-follow-key)
+  (sebe/copilot-follow-definer
+     :keymaps 'copilot-mode-map
+     "c" 'copilot-complete
+     "p"  'copilot-panel-complete
+     "n"  'copilot-next-completion
+     "TAB" (general-predicate-dispatch 'indent-for-tab-command
+             (copilot--overlay-visible) 'copilot-accept-completion))
   :hook
   (c-ts-mode   . copilot-mode)
   (c++-ts-mode . copilot-mode)
