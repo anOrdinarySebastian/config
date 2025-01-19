@@ -1,5 +1,11 @@
 ;; -*- eval: (outline-minor-mode); eval: (outline-show-only-headings)-*-*
 
+;; To make it easier to use the same configuration for several
+;; computers it's nice to know what can be run on which computer.
+;; Currently, the only limiting computer is my work computer, so that
+;; gets a variable
+(setq sen/work-computer-system-name "LT-JRW6NN3")
+
 (package-initialize)
 
 (require 'package)
@@ -68,6 +74,7 @@ The app is chosen from your OS's preference."
 
 (use-package gerrit-getter
   ;; Don't forget to make the symbolic link
+  :if (file-directory-p "~/.emacs.d/lisp/gerrit-el")
   :load-path "lisp/gerrit-el"
   :ensure nil)
 
@@ -661,7 +668,7 @@ SEQ may be an atom or a sequence."
   (define-key flyspell-mode-map (kbd "C-M-i") nil)
   (define-key flyspell-mode-map (kbd "C-.") nil)
   (cond
-   ((string= (system-name) "LT-JRW6NN3")
+   ((string= (system-name) sen/work-computer-system-name)
     (setq ispell-program-name "~/AppData/Local/hunspell-1.3.2-3-w32-bin/bin/hunspell.exe"))))
 
 (use-package flycheck
@@ -1041,7 +1048,7 @@ Take-aways: %?")
 
 ;; Check if on the work laptop
 (cond
- ((string= (system-name) "LT-JRW6NN3")
+ ((string= (system-name) sen/work-computer-system-name)
   (setq explicit-shell-file-name "bash")
   (setq shell-file-name explicit-shell-file-name)))
 
