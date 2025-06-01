@@ -167,3 +167,21 @@ finally, put the point just under the PROPERTY drawer"
   ;; Don't forget to make the symbolic link
   :load-path "lisp/gerrit-el"
   :ensure nil)
+
+(use-package copilot
+  ;; Repo link https://github.com/zerolfx/copilot.el
+  :straight (:host github :repo "zerolfx/copilot.el" :files ("dist"
+                                                             "*.el"))
+  :demand t
+  :ensure nil
+  :functions
+  copilot--overlay-visible
+  copilot-accept-completion
+  :config
+  (general-define-key "TAB" (general-predicate-dispatch 'indent-for-tab-command
+                              (copilot--overlay-visible) 'copilot-accept-completion))
+  :hook
+  (c-ts-mode   . copilot-mode)
+  (c++-ts-mode . copilot-mode)
+  (bash-ts-mode . copilot-mode)
+  (python-ts-mode . copilot-mode))
