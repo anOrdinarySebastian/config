@@ -803,6 +803,19 @@ SEQ may be an atom or a sequence."
   (bash-ts-mode . flycheck-mode))
 
 
+(use-package elec-pair
+  :custom
+  (electric-pair-pairs (append electric-pair-pairs
+                               '((?\( . ?\))
+                                 (?\[ . ?\])
+                                 (?\{ . ?\})
+                                 (?\" . ?\")
+                                 (?\' . ?\'))))
+  :config
+(electric-pair-mode)
+)
+
+
 ;; Org mode ====================================================================
 (use-package org
   :ensure t
@@ -819,6 +832,7 @@ SEQ may be an atom or a sequence."
         ("C-f" . 'forward-char)
         ("C-b" . 'backward-char))
   :hook
+  (org-mode  . org-add-electric-pairs)
   (org-mode         . flyspell-mode)
   (org-mode         . auto-fill-mode)
   (org-mode         . visual-line-mode)
@@ -827,6 +841,8 @@ SEQ may be an atom or a sequence."
                         (god-local-mode 0)))
 
   :custom
+  (org-directory "~/Documents/org")
+  (org-default-notes-file (concat org-directory "/notes.org"))
   (org-agenda-files (list org-default-journal-file
                           org-default-notes-file
                           org-default-todo-file))
@@ -1183,13 +1199,6 @@ will be killed."
     (newline))
   (yank))
 
-;; Electric pairing (parenthesis, brackets etc)
-(setq electric-pairs '((?\( . ?\))
-                       (?\[ . ?\])
-                       (?\{ . ?\})
-                       (?\" . ?\")
-                       (?\' . ?\')))
-(electric-pair-mode t)
 (add-hook 'prog-mode-hook (lambda ()
                             (display-line-numbers-mode 1)))
 ;; Add margins for text mode
