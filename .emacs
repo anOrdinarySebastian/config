@@ -85,8 +85,7 @@ The app is chosen from your OS's preference."
 
 (use-package vc-git
   :ensure nil
-  :after vc-dir
-  :demand t
+  :after vc-dir ol
   :hook
   (vc-git-log-edit-mode . auto-fill-mode)
   (vc-git-log-edit-mode . flyspell-mode)
@@ -96,11 +95,29 @@ The app is chosen from your OS's preference."
   vc-fileset
   vc-dir-mode-map
   :functions
+  org-link-set-parameters
   vc-git--symbolic-ref
   my-vc-git-command
   vc-dir-hide-up-to-date
   vc-dir-refresh
   log-view-msg-prev
+  sen/vc-git-push-gerrit
+  sen/vc-git-cherry-pick
+  sen/vc-git-checkout
+  sen/vc-git-fetch-all
+  sen/vc-git-fixup
+  sen/log-view-hash-on-line
+  org-git-store-link
+  org-git-export
+  org-git-open
+  :custom
+  ;; This doesn't seem to apply :/
+  (vc-git-root-log-format
+   '("%h..: %an %ad%d %s" "^\\(?:[*/\\| ]+ \\)?\\(?1:[0-9a-z]+\\)..: \\(?3:.*?\\)[ \11]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(?2:([^)]+)\\)?"
+     ((1 'log-view-message)
+      (2 'change-log-list nil lax)
+      (3 'change-log-name)
+      (4 'change-log-date))))
   :init
   (unless (boundp 'vc-fileset)
     (setq vc-fileset nil))
@@ -114,6 +131,94 @@ The app is chosen from your OS's preference."
                  (message (concat verb " " (number-to-string (length files))
                                   " file(s).")))
         (message "Not in a vc git buffer."))))
+
+  ;; Stole these fine pieces of code from here: https://nothingissimple.ablatedsprocket.com/posts/git-links-in-org.html
+  ;; The code for exporting, opening and storing are all from the same place
+  (defun org-git-export (link description format _)
+    "Export a Git link from Org files."
+    (let* ((parts (split-string link
+                                "::"))
+           (path (car parts))
+           (commit-hash (cadr parts))
+           (translated-link))
+      ;; Translate SSH link to HTML if domain is in ol-git-forges.
+      (let ((repo-url (vc-git-repository-url path)))
+        (message "Repo: %s" repo-url)
+        (when (string-prefix-p "https://" repo-url)
+          (setq translated-link (file-name-concat repo-url
+                                                  (when commit-hash
+                                                    (concat "commit/"
+                                                            commit-hash))))))
+      (pcase format
+        (`html (if translated-link
+                   (format "<a href=\"%s\">%s</a>"
+                           (or translated-link
+                               (file-name-concat (vc-git-repository-url path)
+                                                 (when commit-hash
+                                                   (concat "commit/" commit-hash))))
+                           description)
+                 (format "<b>%s</b>" description)))
+        (_ (or description link)))))
+
+  (defun org-git-open (path _)
+  "Visit the Git repository at PATH.  Open the commit if provided."
+  (let* ((parts (split-string path "::"))
+         (repo-path (car parts))
+         (commit-hash (cadr parts))
+         (vc-git-log-switches nil))
+    (vc-dir repo-path)
+    (when commit-hash
+      (vc-print-root-log 1 commit-hash))))
+
+  (defun org-git-store-link (&optional _interactive?)
+  "Store a link to a Git commit."
+  (when (or (eq `vc-git-log-view-mode major-mode)
+            (eq `vc-dir-mode major-mode))
+    (save-excursion
+      (let ((repo-uri (vc-git-root default-directory))
+            (description (file-name-sans-extension
+                          (file-name-nondirectory
+                           (vc-git-repository-url default-directory))))
+            (commit-message ""))
+        (when (eq `vc-git-log-view-mode major-mode)
+          (beginning-of-line)
+          ;; Check if in root log mode or in regular log mode.
+          ;; Return the match of the appropriate commit hash face
+          (let ((match (text-property-search-forward 'face 'log-view-message t)))
+            (when match
+              (setq repo-uri
+                    (concat repo-uri
+                            "::"
+                            (buffer-substring-no-properties (prop-match-beginning match)
+                                                            (prop-match-end match)))))
+              (let* ((eol (progn
+                            (end-of-line)
+                            (point))))
+                     (setq commit-message (buffer-substring-no-properties (previous-property-change eol)
+                                                                          eol))))
+            (let ((match (if (string= (thing-at-point 'word t) "commit")
+                             (text-property-search-forward 'face 'change-log-acknowledgment t)
+                           (text-property-search-backward 'face 'change-log-acknowledgment t))))
+              (when match
+                (setq repo-uri
+                      (concat repo-uri
+                              "::"
+                              (buffer-substring-no-properties (prop-match-beginning match)
+                                                              (prop-match-end match))))
+              ;; Try to find the first indented piece of text
+              (search-forward-regexp (rx line-start (1+ (syntax -))
+                                         (group " " (* not-newline)))
+                                     nil t)
+              (setq commit-message (buffer-substring-no-properties (match-beginning 1)
+                                                              (match-end 1))))
+            (setq description
+                  (concat description ":" commit-message))))
+
+        (org-link-store-props
+         :type "git"
+         :link (format "git:%s"
+                       repo-uri)
+         :description description)))))
 
   (defun sen/log-view-hash-on-line ()
     "Get the has on the current line"
@@ -156,7 +261,7 @@ The app is chosen from your OS's preference."
      (lambda (files) (vc-git-command nil 0 files "push" "origin" "HEAD:refs/for/master"))))
 
   (defun sen/vc-git-fetch-all ()
-    "Run the command 'git fetch --all'"
+    "Run the command `git fetch --all'"
     (interactive)
     (my-vc-git-command
      "Fetching --all"
@@ -173,37 +278,32 @@ The app is chosen from your OS's preference."
     (my-vc-git-command
      "Unstaged"
      (lambda (files) (vc-git-command nil 0 files "reset" "-q" "--"))))
+
+  (org-link-set-parameters "git"
+                         :follow #'org-git-open
+                         :export #'org-git-export
+                         :store #'org-git-store-link)
   :bind
   (:map vc-git-log-view-mode-map
+        ("r" . 'vc-revert)
+        ("a" . 'my-vc-git-add)
+        ("u" . 'my-vc-git-reset)
         ("F" . 'sen/vc-git-fixup)
         ("f" . 'sen/vc-git-fetch-all)
         ("C" . 'sen/vc-git-checkout)
-        ("P" . 'sen/vc-git-cherry-pick))
-  (:map vc-dir-mode-map
-        ("P" . sen/vc-git-push-gerrit))
-  :custom
-  ;; This doesn't seem to apply :/
-  (vc-git-root-log-format
-   '("%h..: %an %ad%d %s" "^\\(?:[*/\\| ]+ \\)?\\(?1:[0-9a-z]+\\)..: \\(?3:.*?\\)[ \11]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\) \\(?2:([^)]+)\\)?"
-     ((1 'log-view-message)
-      (2 'change-log-list nil lax)
-      (3 'change-log-name)
-      (4 'change-log-date)))))
+        ("P" . 'sen/vc-git-cherry-pick)))
 
 (use-package vc-dir
   :ensure nil
   :demand t ;; This is needed as we're using vc in the modeline)
-  :config
-  (define-key vc-prefix-map [(r)] 'vc-revert-buffer)
-  (define-key vc-dir-mode-map [(r)] 'vc-revert-buffer)
-  (define-key vc-prefix-map [(a)] 'my-vc-git-add)
-  (define-key vc-dir-mode-map [(a)] 'my-vc-git-add)
-  (define-key vc-prefix-map [(u)] 'my-vc-git-reset)
-  (define-key vc-dir-mode-map [(u)] 'my-vc-git-reset)
-
-  ;; hide up to date files after refreshing in vc-dir
-  (define-key vc-dir-mode-map [(g)]
-              (lambda () (interactive) (vc-dir-refresh) (vc-dir-hide-up-to-date))))
+  :defines
+  vc-git-log-view-mode-map
+  :functions
+  my-vc-git-add
+  my-vc-git-reset
+  :bind
+   (:map vc-dir-mode-map
+        ("P" . 'sen/vc-git-push-gerrit)))
 
 (use-package whitespace
   :ensure nil
