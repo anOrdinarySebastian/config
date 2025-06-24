@@ -642,6 +642,16 @@ god-mode if that is the case"
   (bash-ts-mode . copilot-mode)
   (python-ts-mode . copilot-mode))
 
+(use-package ef-themes
+  ;; :disabled t
+  :ensure t
+  :demand t
+  :custom
+  (ef-themes-disable-other-themes t)
+  (ef-themes-to-toggle '(ef-bio ef-elea-light))
+  :config
+  (ef-themes-load-theme 'ef-bio))
+
 (use-package helm
   :ensure t
   :config
