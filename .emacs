@@ -1131,6 +1131,11 @@ Take-aways: %?")
   :hook (python-ts-mode . py-autopep8-mode))
 
 ;; Bash mode ==========================================================
+(use-package pyvenv
+  :after python
+  :ensure t
+)
+
 (use-package sh-mode
   :hook (bash-ts-mode . flymake-mode)
   :mode
