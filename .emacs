@@ -734,20 +734,6 @@ god-mode if that is the case"
   (c++--mode . (lambda () (c-guess))))
 
 
-(use-package cmake-ts-mode
-  :mode "\\CMake\\'")
-
-(use-package smart-tabs-mode
-  :ensure t
-  :hook
-  (c-ts-mode . (lambda () (setq indent-tabs-mode t)))
-  (c++-ts-mode . (lambda () (setq indent-tabs-mode t)))
-  :config
-  (smart-tabs-add-language-support c++-ts c++-ts-mode-hook
-    ((c-indent-line-or-region . c-basic-offset)))
-  (smart-tabs-add-language-support c-ts c-ts-mode-hook
-    ((c-indent-line-or-region . c-basic-offset)))
-  (smart-tabs-insinuate 'c-ts 'c++-ts))
 
 ;; ================= MODE SPECIFICS ============================================
 
@@ -996,8 +982,6 @@ finally, put the point just under the PROPERTY drawer"
 * [%<%H:%M>]%^{Book-title}p
 Pages: %^{first page}-
 Take-aways: %?")
-
-  (defvar org-electric-pairs '((?/ . ?/) (?= . ?=) (?* . ?*) (?~ . ?~) (?+ . ?+)) "Electric pairs for org-mode.")
   :config
   ;; To eager load org-mode
   (with-temp-buffer (org-mode))
@@ -1021,11 +1005,6 @@ Take-aways: %?")
                        ((org-agenda-overriding-header "Stealth backlog Bolt II")))
             (tags-todo "-{bolt.*}"
                        ((org-agenda-overriding-header "Everything else")))))))
-
-  (defun org-add-electric-pairs ()
-    (setq-local electric-pair-pairs (append electric-pair-pairs org-electric-pairs))
-    (setq-local electric-pair-text-pairs electric-pair-pairs))
-  (org-add-electric-pairs)
 
   (org-babel-do-load-languages
    'org-babel-load-languages
