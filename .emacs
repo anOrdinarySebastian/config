@@ -12,6 +12,12 @@
 (add-to-list 'package-archives
              '("melpa". "https://melpa.org/packages/"))
 
+(when init-file-debug
+  (setq use-package-verbose t
+        use-package-expand-minimally nil
+        use-package-compute-statistics t
+        debug-on-error t))
+
 ;; Adding path to all my own packages
 (let ((default-directory  "~/.emacs.d/lisp/"))
   (normal-top-level-add-to-load-path '("."))
