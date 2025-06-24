@@ -42,6 +42,7 @@
   :ensure nil
   :functions
   dired-open-in-external-app
+  w32-shell-execute
   :bind (:map dired-mode-map
               ("e" . 'dired-open-in-external-app))
   :config
@@ -318,7 +319,9 @@ The app is chosen from your OS's preference."
 
 (use-package god-mode
   :ensure t
+  :after general
   :functions
+  sebe/god-mode-pause-in-comment-region
   sebe/god-mode-insert-at-point
   sebe/god-mode-update-mode-line-and-cursor
   sebe/god-mode-toggle-on-overwrite
@@ -413,7 +416,8 @@ god-mode if that is the case"
   sebe/find-file-leader-key
   sebe/window-leader-key
   sebe/projectile-leader-key
-
+  :functions
+  sebe/main-leader-definer
   sebe/math-follow-definer
   sebe/edit-follow-definer
   sebe/find-file-follow-definer
@@ -422,6 +426,8 @@ god-mode if that is the case"
   sebe/helm-follow-definer
   sebe/org-follow-definer
   sebe/yas-follow-definer
+  sebe/mode-leader-definer
+  sebe/avy-leader-definer
   :config
   (defconst sebe/main-leader-key "C-.")
   (defconst sebe/avy-leader-key "C-ö")
@@ -617,6 +623,7 @@ god-mode if that is the case"
   :functions
   copilot--overlay-visible
   copilot-accept-completion
+  sebe/copilot-follow-definer
   :config
   (defconst sebe/copilot-follow-key
     (concat sebe/main-leader-key " c"))
@@ -1060,11 +1067,13 @@ Take-aways: %?")
 ;; LSP mode ====================================================================
 (use-package lsp-mode
   :hook
-  (python-mode . lsp-mode)
-  (c-mode      . lsp-mode)
-  (c-ts-mode   . lsp-mode)
-  (c++-mode    . lsp-mode)
-  (c++-ts-mode . lsp-mode)
+  (python-mode
+   c-mode c-ts-mode
+   c++-mode c++-ts-mode)
+  :functions
+  lsp-tramp-connection
+  make-lsp-client
+  lsp-register-client
   :defines
   lsp-diagnostics-provider
   lsp-enable-symbol-highlighting
