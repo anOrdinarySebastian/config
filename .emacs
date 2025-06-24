@@ -1056,6 +1056,7 @@ Take-aways: %?")
   :defer t
   :hook (LaTeX-mode . tex-init-addons)
   :defines TeX-arg-input-file-search
+  :custom (TeX-master . nil)
   :init
   (setq reftex-plug-into-AUCTeX t)
   (setq reftex-default-bibliography '("../references.bib"))
