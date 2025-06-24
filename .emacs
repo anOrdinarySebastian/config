@@ -1172,6 +1172,8 @@ Take-aways: %?")
   :config
   (which-key-mode 1))
 
+(use-package rainbow)
+
 ;; Check if on the work laptop
 (cond
  ((string= (system-name) sen/work-computer-system-name)
