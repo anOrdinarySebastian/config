@@ -187,13 +187,17 @@ finally, put the point just under the PROPERTY drawer"
     (concat sebe/main-leader-key " c"))
   (general-create-definer sebe/copilot-follow-definer
     :prefix sebe/copilot-follow-key)
-  (sebe/copilot-follow-defi
+  (sebe/copilot-follow-definer
    :keymaps 'copilot-mode-map
    "c" 'copilot-complete
    "p"  'copilot-panel-complete
    "n"  'copilot-next-completion
    "TAB" (general-predicate-dispatch 'indent-for-tab-command
-                              (copilot--overlay-visible) 'copilot-accept-completion))
+           (copilot--overlay-visible) 'copilot-accept-completion))
+  (general-define-key "TAB" (general-predicate-dispatch 'c-indent-line-or-region
+                              (copilot--overlay-visible) 'copilot-accept-completion)
+                      :keymaps 'c-mode-base-map)
+  
   :hook
   (c-ts-mode   . copilot-mode)
   (c++-ts-mode . copilot-mode)

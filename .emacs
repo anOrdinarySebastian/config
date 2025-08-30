@@ -328,6 +328,7 @@ The app is chosen from your OS's preference."
   idle-timer-callback-god-mode
   idle-timer-start-god-mode
   idle-timer-stop-god-mode
+  general-key-dispatch
   :defines
   god-mode-alist
   :bind
@@ -536,10 +537,7 @@ god-mode if that is the case"
           (find-file "~/AppData/Local/dhcpsrv2.5.2/dhcpsrv.ini"))
     "e" (lambda ()
           (interactive)
-          (find-file "~/.emacs"))
-    "j" (lambda ()
-          (interactive)
-          (find-file org-default-journal-file)))
+          (find-file "~/.emacs")))
 
   (sebe/window-follow-definer
     "s" 'toggle-window-split
@@ -612,6 +610,7 @@ god-mode if that is the case"
 
 (use-package helm
   :ensure t
+  :after ef-themes
   :functions helm-mode
   ;; It seems like these the following section only appends to the custom interface, that's why the many nil values
   :custom-face
@@ -683,10 +682,6 @@ god-mode if that is the case"
 
 (use-package cc-mode
   :ensure nil
-  :config
-  (general-define-key "TAB" (general-predicate-dispatch 'c-indent-line-or-region
-                              (copilot--overlay-visible) 'copilot-accept-completion)
-                      :keymaps 'c-mode-base-map)
   :hook
   (c-mode . (lambda () (c-guess)))
   (c++--mode . (lambda () (c-guess))))
@@ -769,15 +764,17 @@ SEQ may be an atom or a sequence."
                                  (?\{ . ?\})
                                  (?\" . ?\")
                                  (?\' . ?\'))))
-  :config
-(electric-pair-mode)
-)
+  :init
+  (unless (boundp 'electric-pair-pairs)
+    (setq electric-pair-pairs (list)))
+  (electric-pair-mode))
 
 
 ;; Org mode ====================================================================
 (use-package org
   :ensure t
   :demand t
+  :after elec-pair
   :defines
   org-default-todo-file
   org-default-journal-file
@@ -799,7 +796,6 @@ SEQ may be an atom or a sequence."
                         (god-local-mode 0)))
 
   :custom
-  (org-directory "~/Documents/org")
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-agenda-files (list org-default-journal-file
                           org-default-notes-file
@@ -815,6 +811,7 @@ SEQ may be an atom or a sequence."
   (org-use-speed-commands t)
   (org-clock-continuously nil)
   :init
+  (setq org-directory "~/Documents/org")
   (defface org-in-progress
     '((((class color) (min-colors 88) (background light))
        :background "darkseagreen2")
@@ -985,7 +982,9 @@ SEQ may be an atom or a sequence."
   :config
   (which-key-mode 1))
 
-(use-package rainbow)
+(use-package rainbow
+  :disabled t
+  :ensure t)
 
 (use-package ef-themes
   ;; :disabled t
