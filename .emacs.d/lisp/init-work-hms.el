@@ -169,16 +169,30 @@ finally, put the point just under the PROPERTY drawer"
   :ensure nil)
 
 (use-package copilot
+  ;; Only install copilot if running on work PC
+  :if (string= (system-name) sen/work-computer-system-name)
+  :after general
+  :defines
+  sebe/copilot-follow-definer
+  :ensure nil
   ;; Repo link https://github.com/zerolfx/copilot.el
   :straight (:host github :repo "zerolfx/copilot.el" :files ("dist"
                                                              "*.el"))
   :demand t
-  :ensure nil
   :functions
   copilot--overlay-visible
   copilot-accept-completion
   :config
-  (general-define-key "TAB" (general-predicate-dispatch 'indent-for-tab-command
+  (defconst sebe/copilot-follow-key
+    (concat sebe/main-leader-key " c"))
+  (general-create-definer sebe/copilot-follow-definer
+    :prefix sebe/copilot-follow-key)
+  (sebe/copilot-follow-defi
+   :keymaps 'copilot-mode-map
+   "c" 'copilot-complete
+   "p"  'copilot-panel-complete
+   "n"  'copilot-next-completion
+   "TAB" (general-predicate-dispatch 'indent-for-tab-command
                               (copilot--overlay-visible) 'copilot-accept-completion))
   :hook
   (c-ts-mode   . copilot-mode)
